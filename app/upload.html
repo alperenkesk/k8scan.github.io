@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <title>New Scan — k8scan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { darkBg:'#09090b', cardBg:'#18181b', primary:'#10b981' } } }
+    }
+  </script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width:6px; }
+    .custom-scrollbar::-webkit-scrollbar-track  { background:#09090b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb  { background:#3f3f46; border-radius:4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#10b981; }
+    .sidebar-link { display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:8px; font-size:14px; font-weight:500; transition:all 0.2s; color:#9ca3af; }
+    .sidebar-link:hover, .sidebar-link.active { background:rgba(16,185,129,0.1); color:#10b981; }
+    #drop-zone.dragover    { border-color:#10b981; background:rgba(16,185,129,0.08); }
+    #values-drop.dragover  { border-color:#10b981; background:rgba(16,185,129,0.05); }
+  </style>
+</head>
+<body class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar">
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR (same as dashboard) -->
+    <aside class="w-64 bg-cardBg border-r border-gray-800 flex-shrink-0 flex flex-col">
+      <div class="px-6 py-5 border-b border-gray-800 flex items-center justify-between">
+        <a href="/" class="text-xl font-extrabold text-white tracking-tight">k8<span class="text-primary">scan</span></a>
+        <span id="plan-tag" class="text-xs bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
+      </div>
+      <nav class="flex-1 px-3 py-5 space-y-1">
+        <a href="/app/dashboard.html" class="sidebar-link"><i class="fa-solid fa-grid-2 w-4"></i> Dashboard</a>
+        <a href="/app/upload.html"    class="sidebar-link active"><i class="fa-solid fa-cloud-arrow-up w-4"></i> New Scan</a>
+        <a href="#"                   class="sidebar-link"><i class="fa-solid fa-list-check w-4"></i> Scan History</a>
+        <a href="#"                   class="sidebar-link"><i class="fa-solid fa-key w-4"></i> API Keys</a>
+        <a href="#"                   class="sidebar-link"><i class="fa-solid fa-users w-4"></i> Team</a>
+        <div class="pt-4 mt-4 border-t border-gray-800">
+          <a href="#" class="sidebar-link"><i class="fa-solid fa-credit-card w-4"></i> Billing</a>
+          <a href="#" class="sidebar-link"><i class="fa-solid fa-gear w-4"></i> Settings</a>
+        </div>
+      </nav>
+      <div class="px-4 py-4 border-t border-gray-800 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold text-sm" id="avatar">A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-white truncate" id="user-name">Loading…</p>
+          <p class="text-xs text-gray-500 truncate" id="user-email"></p>
+        </div>
+        <button onclick="logout()" title="Sign out" class="text-gray-500 hover:text-red-400 transition text-sm">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar">
+
+      <div class="sticky top-0 z-10 bg-darkBg/90 backdrop-blur-md border-b border-gray-800 px-8 py-4">
+        <h1 class="text-xl font-bold text-white">New Scan</h1>
+        <p class="text-xs text-gray-500 mt-0.5">Upload a Helm chart to start a security scan</p>
+      </div>
+
+      <div class="px-8 py-8 max-w-3xl">
+
+        <!-- Error / success banners -->
+        <div id="error-banner" class="hidden mb-6 flex items-center gap-3 bg-red-950/60 border border-red-800 text-red-300 text-sm rounded-xl px-4 py-3">
+          <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+          <span id="error-msg"></span>
+        </div>
+
+        <!-- Upload form -->
+        <form id="upload-form" novalidate>
+
+          <!-- Drop zone -->
+          <div id="drop-zone"
+               class="border-2 border-dashed border-gray-700 rounded-2xl p-12 text-center cursor-pointer transition-colors mb-6 relative"
+               onclick="document.getElementById('file-input').click()"
+               ondragover="onDragOver(event)"
+               ondragleave="onDragLeave(event)"
+               ondrop="onDrop(event)">
+
+            <input type="file" id="file-input" name="file" accept=".tgz,.tar.gz,.zip,.yaml,.yml,.json" class="hidden" onchange="onFileSelected(this.files[0])">
+
+            <div id="drop-idle">
+              <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                <i class="fa-solid fa-cloud-arrow-up text-3xl text-primary/70"></i>
+              </div>
+              <p class="text-white font-semibold mb-1">Drag &amp; drop your Helm chart here</p>
+              <p class="text-gray-500 text-sm">or click to browse</p>
+              <p class="text-gray-600 text-xs mt-3">.tgz, .tar.gz, .zip, .yaml, .yml &bull; Max 50 MB</p>
+            </div>
+
+            <div id="drop-selected" class="hidden">
+              <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-file-code text-2xl text-primary"></i>
+              </div>
+              <p class="text-white font-semibold mb-1" id="file-name-display"></p>
+              <p class="text-gray-400 text-sm" id="file-size-display"></p>
+              <button type="button" onclick="clearFile(event)"
+                      class="mt-3 text-xs text-red-400 hover:text-red-300 transition underline">Remove file</button>
+            </div>
+          </div>
+          <p id="file-error" class="text-red-400 text-xs -mt-3 mb-5 hidden">Please select a valid Helm chart file (max 50 MB).</p>
+
+          <!-- Scan label -->
+          <div class="mb-6">
+            <label for="scan_label" class="block text-sm font-medium text-gray-300 mb-2">Scan label <span class="text-gray-500">(optional)</span></label>
+            <input type="text" id="scan_label" name="scan_label" maxlength="80"
+                   class="w-full bg-cardBg border border-gray-700 text-white text-sm rounded-lg px-4 py-3
+                          focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition
+                          placeholder:text-gray-600"
+                   placeholder="e.g. nginx-prod v1.2.0">
+          </div>
+
+          <!-- Severity threshold -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-300 mb-3">Minimum severity to report</label>
+            <div class="flex flex-wrap gap-3">
+              <label class="severity-radio cursor-pointer">
+                <input type="radio" name="min_severity" value="CRITICAL" class="peer sr-only">
+                <span class="peer-checked:ring-2 peer-checked:ring-red-400 inline-block px-4 py-2 rounded-lg border border-gray-700 text-sm font-medium text-gray-400 peer-checked:bg-red-950/50 peer-checked:text-red-300 peer-checked:border-red-800 transition">Critical</span>
+              </label>
+              <label class="severity-radio cursor-pointer">
+                <input type="radio" name="min_severity" value="HIGH" class="peer sr-only">
+                <span class="peer-checked:ring-2 peer-checked:ring-orange-400 inline-block px-4 py-2 rounded-lg border border-gray-700 text-sm font-medium text-gray-400 peer-checked:bg-orange-950/50 peer-checked:text-orange-300 peer-checked:border-orange-800 transition">High+</span>
+              </label>
+              <label class="severity-radio cursor-pointer">
+                <input type="radio" name="min_severity" value="MEDIUM" checked class="peer sr-only">
+                <span class="peer-checked:ring-2 peer-checked:ring-yellow-400 inline-block px-4 py-2 rounded-lg border border-gray-700 text-sm font-medium text-gray-400 peer-checked:bg-yellow-950/50 peer-checked:text-yellow-300 peer-checked:border-yellow-800 transition">Medium+</span>
+              </label>
+              <label class="severity-radio cursor-pointer">
+                <input type="radio" name="min_severity" value="LOW" class="peer sr-only">
+                <span class="peer-checked:ring-2 peer-checked:ring-green-400 inline-block px-4 py-2 rounded-lg border border-gray-700 text-sm font-medium text-gray-400 peer-checked:bg-green-950/50 peer-checked:text-green-300 peer-checked:border-green-800 transition">All</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Values file (optional) -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-300 mb-2">
+              Values file <span class="text-gray-500">(optional)</span>
+              <span class="ml-2 text-xs text-gray-600 font-normal">Resolves <code class="text-primary">{{ .Values.* }}</code> expressions for more accurate results</span>
+            </label>
+            <div id="values-drop"
+                 class="border border-dashed border-gray-700 rounded-xl px-5 py-4 flex items-center gap-4 cursor-pointer hover:border-gray-600 transition"
+                 onclick="document.getElementById('values-input').click()"
+                 ondragover="onValuesDragOver(event)"
+                 ondragleave="onValuesDragLeave(event)"
+                 ondrop="onValuesDrop(event)">
+              <input type="file" id="values-input" accept=".yaml,.yml" class="hidden" onchange="onValuesSelected(this.files[0])">
+              <div id="values-idle" class="flex items-center gap-3 text-gray-500 text-sm">
+                <i class="fa-solid fa-file-lines text-lg"></i>
+                <span>Drag &amp; drop <strong class="text-gray-400">values.yaml</strong> or click to browse</span>
+              </div>
+              <div id="values-selected" class="hidden flex items-center gap-3 text-sm flex-1">
+                <i class="fa-solid fa-circle-check text-primary text-lg"></i>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-medium truncate" id="values-name"></p>
+                  <p class="text-gray-500 text-xs" id="values-size"></p>
+                </div>
+                <button type="button" onclick="clearValues(event)"
+                        class="text-xs text-red-400 hover:text-red-300 transition shrink-0">Remove</button>
+              </div>
+            </div>
+            <p id="values-error" class="text-red-400 text-xs mt-1 hidden">Please select a .yaml or .yml file (max 1 MB).</p>
+          </div>
+
+          <!-- Progress (hidden until upload starts) -->
+          <div id="upload-progress" class="hidden mb-6 bg-cardBg border border-gray-800 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-sm font-semibold text-white" id="progress-label">Uploading…</p>
+              <span class="text-xs text-primary font-bold" id="progress-pct">0%</span>
+            </div>
+            <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div id="progress-bar" class="h-2 bg-primary rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="progress-sub">Encrypting and transmitting your file…</p>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" id="submit-btn"
+                  class="w-full bg-primary text-black font-bold py-3.5 rounded-xl hover:bg-emerald-400 transition
+                         flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span id="btn-text">Start Scan</span>
+            <i id="btn-spinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+          </button>
+          <p class="text-center text-xs text-gray-600 mt-3">Files are encrypted at rest and deleted after 24 hours.</p>
+        </form>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE  = '';
+    const MAX_BYTES = 50 * 1024 * 1024;  // 50 MB
+    const ALLOWED   = new Set(['tgz','tar.gz','zip','yaml','yml','json']);
+
+    let selectedFile  = null;
+    let selectedValues = null;
+
+    // ── Auth check ──────────────────────────────────────────────────────────
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/me`, { credentials:'include' });
+        if (res.status === 401) { window.location.href = '/app/login.html'; return; }
+        const u = await res.json();
+        document.getElementById('user-name').textContent  = u.full_name;
+        document.getElementById('user-email').textContent = u.email;
+        document.getElementById('avatar').textContent     = u.full_name.charAt(0).toUpperCase();
+        document.getElementById('plan-tag').textContent   = u.plan_display;
+      } catch { /* silent */ }
+    })();
+
+    // ── Drag & drop ──────────────────────────────────────────────────────────
+    function onDragOver(e) {
+      e.preventDefault();
+      document.getElementById('drop-zone').classList.add('dragover');
+    }
+    function onDragLeave(e) {
+      if (!document.getElementById('drop-zone').contains(e.relatedTarget))
+        document.getElementById('drop-zone').classList.remove('dragover');
+    }
+    function onDrop(e) {
+      e.preventDefault();
+      document.getElementById('drop-zone').classList.remove('dragover');
+      if (e.dataTransfer.files.length) onFileSelected(e.dataTransfer.files[0]);
+    }
+    function onFileSelected(file) {
+      if (!file) return;
+      const ext = file.name.split('.').slice(1).join('.').toLowerCase();
+      if (!ALLOWED.has(ext) || file.size > MAX_BYTES) {
+        document.getElementById('file-error').classList.remove('hidden');
+        selectedFile = null;
+        return;
+      }
+      document.getElementById('file-error').classList.add('hidden');
+      selectedFile = file;
+      document.getElementById('drop-idle').classList.add('hidden');
+      document.getElementById('drop-selected').classList.remove('hidden');
+      document.getElementById('file-name-display').textContent = file.name;
+      document.getElementById('file-size-display').textContent = formatBytes(file.size);
+    }
+    function clearFile(e) {
+      e.stopPropagation();
+      selectedFile = null;
+      document.getElementById('file-input').value = '';
+      document.getElementById('drop-idle').classList.remove('hidden');
+      document.getElementById('drop-selected').classList.add('hidden');
+    }
+
+    // ── Values file drag & drop ──────────────────────────────────────────────
+    function onValuesDragOver(e) {
+      e.preventDefault();
+      document.getElementById('values-drop').classList.add('dragover');
+    }
+    function onValuesDragLeave(e) {
+      if (!document.getElementById('values-drop').contains(e.relatedTarget))
+        document.getElementById('values-drop').classList.remove('dragover');
+    }
+    function onValuesDrop(e) {
+      e.preventDefault();
+      document.getElementById('values-drop').classList.remove('dragover');
+      if (e.dataTransfer.files.length) onValuesSelected(e.dataTransfer.files[0]);
+    }
+    function onValuesSelected(file) {
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!['yaml','yml'].includes(ext) || file.size > 1 * 1024 * 1024) {
+        document.getElementById('values-error').classList.remove('hidden');
+        selectedValues = null;
+        return;
+      }
+      document.getElementById('values-error').classList.add('hidden');
+      selectedValues = file;
+      document.getElementById('values-idle').classList.add('hidden');
+      document.getElementById('values-selected').classList.remove('hidden');
+      document.getElementById('values-name').textContent = file.name;
+      document.getElementById('values-size').textContent = formatBytes(file.size);
+    }
+    function clearValues(e) {
+      e.stopPropagation();
+      selectedValues = null;
+      document.getElementById('values-input').value = '';
+      document.getElementById('values-idle').classList.remove('hidden');
+      document.getElementById('values-selected').classList.add('hidden');
+    }
+    function formatBytes(b) {
+      return b < 1024 ? `${b} B` : b < 1048576 ? `${(b/1024).toFixed(1)} KB` : `${(b/1048576).toFixed(1)} MB`;
+    }
+
+    // ── Form submit ──────────────────────────────────────────────────────────
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('error-banner').classList.add('hidden');
+
+      if (!selectedFile) {
+        document.getElementById('file-error').classList.remove('hidden');
+        return;
+      }
+
+      const label       = document.getElementById('scan_label').value.trim().slice(0, 80);
+      const min_sev     = document.querySelector('input[name="min_severity"]:checked')?.value || 'MEDIUM';
+
+      setLoading(true);
+      showProgress('Uploading…', 0, 'Encrypting and transmitting your file…');
+
+      const form = new FormData();
+      form.append('file',         selectedFile);
+      form.append('label',        label);
+      form.append('min_severity', min_sev);
+      if (selectedValues) form.append('values_file', selectedValues);
+
+      try {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API_BASE}/api/v1/scans/upload`);
+        xhr.withCredentials = true;
+
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) {
+            const pct = Math.round((ev.loaded / ev.total) * 80);
+            showProgress('Uploading…', pct, `${formatBytes(ev.loaded)} / ${formatBytes(ev.total)}`);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 401) { window.location.href = '/app/login.html'; return; }
+          if (xhr.status === 200 || xhr.status === 201) {
+            showProgress('Scan queued!', 100, 'Redirecting to results…');
+            const data = JSON.parse(xhr.responseText);
+            setTimeout(() => {
+              window.location.href = `/app/scan-result.html?id=${encodeURIComponent(data.scan_id)}`;
+            }, 800);
+          } else {
+            let detail = 'Upload failed. Please try again.';
+            try { detail = JSON.parse(xhr.responseText).detail || detail; } catch {}
+            showUploadError(detail);
+          }
+        };
+
+        xhr.onerror = () => showUploadError('Network error. Please check your connection.');
+
+        xhr.send(form);
+      } catch {
+        showUploadError('Unexpected error. Please try again.');
+      }
+    });
+
+    function setLoading(on) {
+      document.getElementById('submit-btn').disabled = on;
+      document.getElementById('btn-spinner').classList.toggle('hidden', !on);
+      if (on) document.getElementById('upload-progress').classList.remove('hidden');
+    }
+    function showProgress(label, pct, sub) {
+      document.getElementById('progress-label').textContent = label;
+      document.getElementById('progress-pct').textContent   = pct + '%';
+      document.getElementById('progress-bar').style.width   = pct + '%';
+      document.getElementById('progress-sub').textContent   = sub;
+    }
+    function showUploadError(msg) {
+      document.getElementById('error-msg').textContent = msg;
+      document.getElementById('error-banner').classList.remove('hidden');
+      document.getElementById('upload-progress').classList.add('hidden');
+      setLoading(false);
+      document.getElementById('btn-text').textContent = 'Start Scan';
+    }
+
+    async function logout() {
+      await fetch(`${API_BASE}/api/v1/auth/logout`, { method:'POST', credentials:'include' });
+      window.location.href = '/app/login.html';
+    }
+  </script>
+</body>
+</html>

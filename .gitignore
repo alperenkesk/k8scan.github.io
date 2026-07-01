@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# Environment – NEVER commit secrets
+backend/.env
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# Uploads – user files never in repo
+backend/uploads/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Temp
+write_files.py

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <title>Sign In — k8scan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { darkBg:'#09090b', cardBg:'#18181b', primary:'#10b981' } } }
+    }
+  </script>
+</head>
+<body class="bg-darkBg text-gray-300 font-sans antialiased min-h-screen flex items-center justify-center px-4">
+
+  <div class="w-full max-w-md">
+    <!-- Logo -->
+    <a href="/" class="flex justify-center mb-10 text-3xl font-extrabold text-white tracking-tight">
+      k8<span class="text-primary">scan</span>
+    </a>
+
+    <!-- Card -->
+    <div class="bg-cardBg rounded-2xl border border-gray-800 p-8 shadow-2xl">
+      <h1 class="text-2xl font-extrabold text-white mb-1">Welcome back</h1>
+      <p class="text-gray-400 text-sm mb-8">Sign in to your account</p>
+
+      <!-- Error banner (hidden by default) -->
+      <div id="error-banner" class="hidden mb-5 flex items-center gap-3 bg-red-950/60 border border-red-800 text-red-300 text-sm rounded-lg px-4 py-3">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="error-msg">Invalid credentials. Please try again.</span>
+      </div>
+
+      <form id="login-form" novalidate>
+        <!-- Email -->
+        <div class="mb-5">
+          <label for="email" class="block text-sm font-medium text-gray-300 mb-2">Email address</label>
+          <input type="email" id="email" name="email" autocomplete="email" required
+                 class="w-full bg-darkBg border border-gray-700 text-white text-sm rounded-lg px-4 py-3
+                        focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition
+                        placeholder:text-gray-600"
+                 placeholder="you@company.com">
+          <p id="email-error" class="text-red-400 text-xs mt-1 hidden">Enter a valid email address.</p>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-2">
+            <label for="password" class="text-sm font-medium text-gray-300">Password</label>
+            <a href="#" class="text-xs text-primary hover:underline">Forgot password?</a>
+          </div>
+          <div class="relative">
+            <input type="password" id="password" name="password" autocomplete="current-password" required
+                   class="w-full bg-darkBg border border-gray-700 text-white text-sm rounded-lg px-4 py-3 pr-11
+                          focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition
+                          placeholder:text-gray-600"
+                   placeholder="••••••••">
+            <button type="button" onclick="togglePw('password', 'pw-eye')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition">
+              <i id="pw-eye" class="fa-solid fa-eye text-sm"></i>
+            </button>
+          </div>
+          <p id="password-error" class="text-red-400 text-xs mt-1 hidden">Password is required.</p>
+        </div>
+
+        <!-- Remember me -->
+        <div class="flex items-center gap-2 mb-7">
+          <input type="checkbox" id="remember" name="remember"
+                 class="w-4 h-4 rounded border-gray-600 bg-darkBg accent-primary cursor-pointer">
+          <label for="remember" class="text-sm text-gray-400 cursor-pointer select-none">Remember me for 30 days</label>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="submit-btn"
+                class="w-full bg-primary text-black font-bold py-3 rounded-lg hover:bg-emerald-400 transition
+                       flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+          <span id="btn-text">Sign In</span>
+          <i id="btn-spinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-sm text-gray-500 mt-6">
+      Don't have an account?
+      <a href="/app/register.html" class="text-primary font-medium hover:underline">Create one free</a>
+    </p>
+  </div>
+
+  <script>
+    const API_BASE = '';  // Set to your backend URL e.g. https://api.k8scan.io
+
+    function togglePw(inputId, iconId) {
+      const inp = document.getElementById(inputId);
+      const ico = document.getElementById(iconId);
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        ico.className = 'fa-solid fa-eye-slash text-sm';
+      } else {
+        inp.type = 'password';
+        ico.className = 'fa-solid fa-eye text-sm';
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('error-msg').textContent = msg;
+      document.getElementById('error-banner').classList.remove('hidden');
+    }
+
+    function setLoading(on) {
+      document.getElementById('submit-btn').disabled = on;
+      document.getElementById('btn-text').textContent = on ? 'Signing in...' : 'Sign In';
+      document.getElementById('btn-spinner').classList.toggle('hidden', !on);
+    }
+
+    function validateForm(email, password) {
+      let valid = true;
+      document.getElementById('email-error').classList.add('hidden');
+      document.getElementById('password-error').classList.add('hidden');
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        document.getElementById('email-error').classList.remove('hidden');
+        valid = false;
+      }
+      if (!password) {
+        document.getElementById('password-error').classList.remove('hidden');
+        valid = false;
+      }
+      return valid;
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('error-banner').classList.add('hidden');
+
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!validateForm(email, password)) return;
+
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+          method:      'POST',
+          headers:     { 'Content-Type': 'application/json' },
+          credentials: 'include',          // send/receive httpOnly cookies
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.detail || 'Login failed. Please try again.');
+        } else {
+          window.location.href = '/app/dashboard.html';
+        }
+      } catch {
+        showError('Network error. Please check your connection.');
+      } finally {
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>

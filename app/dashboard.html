@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <title>Dashboard — k8scan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { darkBg:'#09090b', cardBg:'#18181b', primary:'#10b981' } } }
+    }
+  </script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width:6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background:#09090b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:#3f3f46; border-radius:4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#10b981; }
+    .severity-critical { color:#f87171; background:rgba(248,113,113,0.1); border-color:rgba(248,113,113,0.3); }
+    .severity-high     { color:#fb923c; background:rgba(251,146,60,0.1);  border-color:rgba(251,146,60,0.3); }
+    .severity-medium   { color:#facc15; background:rgba(250,204,21,0.1);  border-color:rgba(250,204,21,0.3); }
+    .severity-low      { color:#a3e635; background:rgba(163,230,53,0.1);  border-color:rgba(163,230,53,0.3); }
+    .sidebar-link { display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:8px; font-size:14px; font-weight:500; transition:all 0.2s; color:#9ca3af; }
+    .sidebar-link:hover, .sidebar-link.active { background:rgba(16,185,129,0.1); color:#10b981; }
+  </style>
+</head>
+<body class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar">
+
+  <!-- ── LAYOUT ── -->
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="w-64 bg-cardBg border-r border-gray-800 flex-shrink-0 flex flex-col">
+      <!-- Logo -->
+      <div class="px-6 py-5 border-b border-gray-800 flex items-center justify-between">
+        <a href="/" class="text-xl font-extrabold text-white tracking-tight">
+          k8<span class="text-primary">scan</span>
+        </a>
+        <span id="plan-tag" class="text-xs bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
+      </div>
+
+      <!-- Nav -->
+      <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto custom-scrollbar">
+        <a href="/app/dashboard.html" class="sidebar-link active">
+          <i class="fa-solid fa-grid-2 w-4"></i> Dashboard
+        </a>
+        <a href="/app/upload.html" class="sidebar-link">
+          <i class="fa-solid fa-cloud-arrow-up w-4"></i> New Scan
+        </a>
+        <a href="#" class="sidebar-link" id="nav-scans">
+          <i class="fa-solid fa-list-check w-4"></i> Scan History
+        </a>
+        <a href="#" class="sidebar-link">
+          <i class="fa-solid fa-key w-4"></i> API Keys
+        </a>
+        <a href="#" class="sidebar-link">
+          <i class="fa-solid fa-users w-4"></i> Team
+        </a>
+
+        <div class="pt-4 mt-4 border-t border-gray-800">
+          <a href="#" class="sidebar-link">
+            <i class="fa-solid fa-credit-card w-4"></i> Billing
+          </a>
+          <a href="#" class="sidebar-link">
+            <i class="fa-solid fa-gear w-4"></i> Settings
+          </a>
+        </div>
+      </nav>
+
+      <!-- User -->
+      <div class="px-4 py-4 border-t border-gray-800 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold text-sm" id="avatar">A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-white truncate" id="user-name">Loading…</p>
+          <p class="text-xs text-gray-500 truncate" id="user-email"></p>
+        </div>
+        <button onclick="logout()" title="Sign out" class="text-gray-500 hover:text-red-400 transition text-sm">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar bg-darkBg">
+
+      <!-- Top bar -->
+      <div class="sticky top-0 z-10 bg-darkBg/90 backdrop-blur-md border-b border-gray-800 px-8 py-4 flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-bold text-white">Dashboard</h1>
+          <p class="text-xs text-gray-500 mt-0.5" id="top-date"></p>
+        </div>
+        <a href="/app/upload.html"
+           class="bg-primary text-black text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-400 transition flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i> New Scan
+        </a>
+      </div>
+
+      <!-- Content -->
+      <div class="px-8 py-8">
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Total Scans</p>
+            <p class="text-3xl font-extrabold text-white" id="stat-total">—</p>
+            <p class="text-xs text-primary mt-1" id="stat-total-sub"></p>
+          </div>
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Critical Findings</p>
+            <p class="text-3xl font-extrabold text-red-400" id="stat-critical">—</p>
+            <p class="text-xs text-gray-500 mt-1">Across all scans</p>
+          </div>
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Avg Risk Score</p>
+            <p class="text-3xl font-extrabold text-white" id="stat-score">—</p>
+            <p class="text-xs text-gray-500 mt-1">Lower is safer</p>
+          </div>
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Scans Left</p>
+            <p class="text-3xl font-extrabold text-primary" id="stat-quota">—</p>
+            <p class="text-xs text-gray-500 mt-1">This billing cycle</p>
+          </div>
+        </div>
+
+        <!-- Quota bar -->
+        <div class="bg-cardBg rounded-xl border border-gray-800 p-5 mb-8">
+          <div class="flex justify-between items-center mb-3">
+            <p class="text-sm font-semibold text-white">Monthly Scan Quota</p>
+            <span class="text-xs text-gray-400" id="quota-label">— / —</span>
+          </div>
+          <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
+            <div id="quota-bar" class="h-2 bg-primary rounded-full transition-all duration-700" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Recent scans table -->
+        <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
+          <div class="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h2 class="text-base font-bold text-white">Recent Scans</h2>
+            <a href="#" class="text-xs text-primary hover:underline">View all</a>
+          </div>
+
+          <!-- Skeleton loader -->
+          <div id="scans-skeleton" class="divide-y divide-gray-800">
+            <div class="px-6 py-4 animate-pulse flex items-center gap-4">
+              <div class="w-8 h-8 bg-gray-800 rounded-lg"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-gray-800 rounded w-1/3"></div>
+                <div class="h-2 bg-gray-800 rounded w-1/4"></div>
+              </div>
+              <div class="h-5 w-16 bg-gray-800 rounded-full"></div>
+            </div>
+            <div class="px-6 py-4 animate-pulse flex items-center gap-4">
+              <div class="w-8 h-8 bg-gray-800 rounded-lg"></div>
+              <div class="flex-1 space-y-2">
+                <div class="h-3 bg-gray-800 rounded w-2/5"></div>
+                <div class="h-2 bg-gray-800 rounded w-1/3"></div>
+              </div>
+              <div class="h-5 w-20 bg-gray-800 rounded-full"></div>
+            </div>
+          </div>
+
+          <!-- Actual scan rows (rendered by JS) -->
+          <div id="scans-list" class="divide-y divide-gray-800 hidden"></div>
+
+          <!-- Empty state -->
+          <div id="scans-empty" class="hidden px-6 py-16 text-center">
+            <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-magnifying-glass text-2xl text-primary/60"></i>
+            </div>
+            <p class="text-white font-semibold mb-1">No scans yet</p>
+            <p class="text-gray-500 text-sm mb-5">Upload your first Helm chart to get started.</p>
+            <a href="/app/upload.html"
+               class="inline-flex items-center gap-2 bg-primary text-black text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-400 transition">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload Chart
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = '';
+
+    // Set today's date
+    document.getElementById('top-date').textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+
+    async function fetchDashboard() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/dashboard`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.status === 401) {
+          window.location.href = '/app/login.html';
+          return;
+        }
+        const d = await res.json();
+        populateDashboard(d);
+      } catch {
+        showNetworkError();
+      }
+    }
+
+    function populateDashboard(d) {
+      document.getElementById('user-name').textContent  = d.user.full_name;
+      document.getElementById('user-email').textContent = d.user.email;
+      document.getElementById('avatar').textContent     = d.user.full_name.charAt(0).toUpperCase();
+      document.getElementById('plan-tag').textContent   = d.user.plan_display;
+
+      document.getElementById('stat-total').textContent    = d.stats.total_scans;
+      document.getElementById('stat-critical').textContent = d.stats.critical_count;
+      document.getElementById('stat-score').textContent    = d.stats.avg_risk_score ?? '—';
+      document.getElementById('stat-quota').textContent    = d.quota.remaining;
+      document.getElementById('quota-label').textContent   = `${d.quota.used} / ${d.quota.limit}`;
+      document.getElementById('quota-bar').style.width     = d.quota.pct + '%';
+      if (d.quota.pct > 80) document.getElementById('quota-bar').classList.replace('bg-primary','bg-orange-400');
+
+      document.getElementById('scans-skeleton').remove();
+      const list = document.getElementById('scans-list');
+
+      if (!d.recent_scans || d.recent_scans.length === 0) {
+        document.getElementById('scans-empty').classList.remove('hidden');
+        return;
+      }
+
+      list.classList.remove('hidden');
+      d.recent_scans.forEach(scan => {
+        const statusColor = {
+          completed: 'text-primary',
+          running:   'text-yellow-400',
+          failed:    'text-red-400',
+          pending:   'text-gray-400',
+        }[scan.status] || 'text-gray-400';
+
+        const statusIcon = {
+          completed: 'fa-circle-check',
+          running:   'fa-circle-notch fa-spin',
+          failed:    'fa-circle-xmark',
+          pending:   'fa-clock',
+        }[scan.status] || 'fa-circle';
+
+        const scoreColor = scan.risk_score == null ? 'text-gray-500'
+          : scan.risk_score >= 70 ? 'text-red-400'
+          : scan.risk_score >= 40 ? 'text-yellow-400' : 'text-primary';
+
+        const row = document.createElement('div');
+        row.className = 'px-6 py-4 flex items-center gap-4 hover:bg-gray-900/40 transition cursor-pointer';
+        row.onclick = () => window.location.href = `/app/scan-result.html?id=${encodeURIComponent(scan.id)}`;
+        row.innerHTML = `
+          <div class="w-9 h-9 rounded-lg bg-gray-800 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-file-code text-primary text-sm"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-white truncate">${escHtml(scan.chart_name)}</p>
+            <p class="text-xs text-gray-500 mt-0.5">${formatDate(scan.created_at)}</p>
+          </div>
+          <div class="flex items-center gap-4">
+            ${scan.risk_score != null ? `<span class="text-sm font-bold ${scoreColor}">Score ${scan.risk_score}</span>` : ''}
+            <span class="flex items-center gap-1.5 text-xs font-medium ${statusColor}">
+              <i class="fa-solid ${statusIcon}"></i>
+              ${escHtml(capitalize(scan.status))}
+            </span>
+          </div>`;
+        list.appendChild(row);
+      });
+    }
+
+    function showNetworkError() {
+      document.getElementById('scans-skeleton').innerHTML =
+        `<div class="px-6 py-10 text-center text-gray-500 text-sm">
+           <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-2xl mb-3 block"></i>
+           Failed to load data. <a href="#" onclick="fetchDashboard()" class="text-primary hover:underline">Retry</a>
+         </div>`;
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    function formatDate(iso) {
+      return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    async function logout() {
+      await fetch(`${API_BASE}/api/v1/auth/logout`, { method:'POST', credentials:'include' });
+      window.location.href = '/app/login.html';
+    }
+
+    fetchDashboard();
+  </script>
+</body>
+</html>

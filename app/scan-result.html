@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <title>Scan Result — k8scan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { darkBg:'#09090b', cardBg:'#18181b', primary:'#10b981' } } }
+    }
+  </script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width:6px; }
+    .custom-scrollbar::-webkit-scrollbar-track  { background:#09090b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb  { background:#3f3f46; border-radius:4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#10b981; }
+    .sidebar-link { display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:8px; font-size:14px; font-weight:500; transition:all 0.2s; color:#9ca3af; }
+    .sidebar-link:hover { background:rgba(16,185,129,0.1); color:#10b981; }
+    .finding-card { transition: border-color 0.2s; }
+    .finding-card:hover { border-color: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar">
+
+  <div class="flex h-screen overflow-hidden">
+
+    <!-- SIDEBAR -->
+    <aside class="w-64 bg-cardBg border-r border-gray-800 flex-shrink-0 flex flex-col">
+      <div class="px-6 py-5 border-b border-gray-800 flex items-center justify-between">
+        <a href="/" class="text-xl font-extrabold text-white tracking-tight">k8<span class="text-primary">scan</span></a>
+        <span id="plan-tag" class="text-xs bg-primary/10 text-primary border border-primary/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
+      </div>
+      <nav class="flex-1 px-3 py-5 space-y-1">
+        <a href="/app/dashboard.html" class="sidebar-link"><i class="fa-solid fa-grid-2 w-4"></i> Dashboard</a>
+        <a href="/app/upload.html"    class="sidebar-link"><i class="fa-solid fa-cloud-arrow-up w-4"></i> New Scan</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-list-check w-4"></i> Scan History</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-key w-4"></i> API Keys</a>
+        <a href="#" class="sidebar-link"><i class="fa-solid fa-users w-4"></i> Team</a>
+        <div class="pt-4 mt-4 border-t border-gray-800">
+          <a href="#" class="sidebar-link"><i class="fa-solid fa-credit-card w-4"></i> Billing</a>
+          <a href="#" class="sidebar-link"><i class="fa-solid fa-gear w-4"></i> Settings</a>
+        </div>
+      </nav>
+      <div class="px-4 py-4 border-t border-gray-800 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold text-sm" id="avatar">A</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-white truncate" id="user-name">Loading…</p>
+          <p class="text-xs text-gray-500 truncate" id="user-email"></p>
+        </div>
+        <button onclick="logout()" title="Sign out" class="text-gray-500 hover:text-red-400 transition text-sm">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar">
+
+      <!-- Top bar -->
+      <div class="sticky top-0 z-10 bg-darkBg/90 backdrop-blur-md border-b border-gray-800 px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/app/dashboard.html" class="text-gray-500 hover:text-primary transition text-sm">
+            <i class="fa-solid fa-arrow-left"></i>
+          </a>
+          <div>
+            <h1 class="text-xl font-bold text-white" id="scan-title">Loading scan…</h1>
+            <p class="text-xs text-gray-500 mt-0.5" id="scan-meta"></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="status-badge" class="hidden text-xs font-semibold px-3 py-1 rounded-full border"></span>
+          <button onclick="downloadReport('html')"
+                  class="bg-cardBg border border-gray-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:border-primary transition flex items-center gap-2">
+            <i class="fa-solid fa-download"></i> HTML Report
+          </button>
+          <button onclick="downloadReport('json')"
+                  class="bg-cardBg border border-gray-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:border-primary transition flex items-center gap-2">
+            <i class="fa-solid fa-code"></i> JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Polling banner -->
+      <div id="polling-banner" class="hidden mx-8 mt-6 flex items-center gap-3 bg-yellow-950/50 border border-yellow-700/50 text-yellow-300 text-sm rounded-xl px-5 py-3">
+        <i class="fa-solid fa-circle-notch fa-spin shrink-0"></i>
+        <span id="polling-msg">Scan in progress… This usually takes 10–60 seconds.</span>
+      </div>
+
+      <!-- Content -->
+      <div class="px-8 py-8" id="result-content" style="display:none">
+
+        <!-- Summary cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div class="lg:col-span-1 bg-cardBg rounded-xl border border-gray-800 p-5 text-center">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Risk Score</p>
+            <p class="text-4xl font-extrabold" id="risk-score-display">—</p>
+            <p class="text-xs text-gray-500 mt-1">out of 100</p>
+          </div>
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5 text-center">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Critical</p>
+            <p class="text-3xl font-extrabold text-red-400" id="count-critical">0</p>
+          </div>
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5 text-center">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">High</p>
+            <p class="text-3xl font-extrabold text-orange-400" id="count-high">0</p>
+          </div>
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5 text-center">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Medium</p>
+            <p class="text-3xl font-extrabold text-yellow-400" id="count-medium">0</p>
+          </div>
+          <div class="bg-cardBg rounded-xl border border-gray-800 p-5 text-center">
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Low</p>
+            <p class="text-3xl font-extrabold text-green-400" id="count-low">0</p>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-2 mb-6">
+          <button onclick="filterFindings('ALL')"    id="filter-ALL"      class="filter-btn active-filter text-xs font-semibold px-4 py-2 rounded-full border border-gray-700 bg-cardBg text-gray-300 transition">All</button>
+          <button onclick="filterFindings('CRITICAL')" id="filter-CRITICAL" class="filter-btn text-xs font-semibold px-4 py-2 rounded-full border border-gray-700 bg-cardBg text-gray-300 transition">Critical</button>
+          <button onclick="filterFindings('HIGH')"   id="filter-HIGH"     class="filter-btn text-xs font-semibold px-4 py-2 rounded-full border border-gray-700 bg-cardBg text-gray-300 transition">High</button>
+          <button onclick="filterFindings('MEDIUM')" id="filter-MEDIUM"   class="filter-btn text-xs font-semibold px-4 py-2 rounded-full border border-gray-700 bg-cardBg text-gray-300 transition">Medium</button>
+          <button onclick="filterFindings('LOW')"    id="filter-LOW"      class="filter-btn text-xs font-semibold px-4 py-2 rounded-full border border-gray-700 bg-cardBg text-gray-300 transition">Low</button>
+        </div>
+
+        <!-- Findings list -->
+        <div id="findings-list" class="space-y-3"></div>
+
+        <!-- No findings -->
+        <div id="findings-empty" class="hidden text-center py-16">
+          <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-shield-check text-2xl text-primary"></i>
+          </div>
+          <p class="text-white font-semibold mb-1">No findings</p>
+          <p class="text-gray-500 text-sm">No issues detected at this severity level.</p>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = '';
+    const scanId   = new URLSearchParams(window.location.search).get('id');
+    let   allFindings = [];
+    let   pollTimer   = null;
+
+    const SEV_CONFIG = {
+      CRITICAL: { color:'text-red-400',    bg:'bg-red-950/40',    border:'border-red-800/50',    badge:'bg-red-950/60 text-red-300 border-red-800' },
+      HIGH:     { color:'text-orange-400', bg:'bg-orange-950/40', border:'border-orange-800/50', badge:'bg-orange-950/60 text-orange-300 border-orange-800' },
+      MEDIUM:   { color:'text-yellow-400', bg:'bg-yellow-950/40', border:'border-yellow-800/50', badge:'bg-yellow-950/60 text-yellow-300 border-yellow-800' },
+      LOW:      { color:'text-green-400',  bg:'bg-green-950/40',  border:'border-green-800/50',  badge:'bg-green-950/60 text-green-300 border-green-800' },
+    };
+
+    if (!scanId) { window.location.href = '/app/dashboard.html'; }
+
+    // ── Auth + initial load ──────────────────────────────────────────────────
+    (async () => {
+      try {
+        const me = await fetch(`${API_BASE}/api/v1/auth/me`, { credentials:'include' });
+        if (me.status === 401) { window.location.href = '/app/login.html'; return; }
+        const u = await me.json();
+        document.getElementById('user-name').textContent  = u.full_name;
+        document.getElementById('user-email').textContent = u.email;
+        document.getElementById('avatar').textContent     = u.full_name.charAt(0).toUpperCase();
+        document.getElementById('plan-tag').textContent   = u.plan_display;
+      } catch { /* silent */ }
+      fetchResult();
+    })();
+
+    async function fetchResult() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/scans/${encodeURIComponent(scanId)}`, { credentials:'include' });
+        if (res.status === 401) { window.location.href = '/app/login.html'; return; }
+        if (res.status === 404) { window.location.href = '/app/dashboard.html'; return; }
+        const data = await res.json();
+        renderResult(data);
+      } catch {
+        document.getElementById('polling-banner').classList.remove('hidden');
+        document.getElementById('polling-msg').textContent = 'Failed to load. Retrying…';
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(fetchResult, 5000);
+      }
+    }
+
+    function renderResult(data) {
+      document.getElementById('scan-title').textContent = escHtml(data.chart_name);
+      document.getElementById('scan-meta').textContent  =
+        `Scanned ${formatDate(data.created_at)} · ${data.file_size_display}`;
+
+      const sb = document.getElementById('status-badge');
+      sb.classList.remove('hidden');
+      if (data.status === 'completed') {
+        sb.className = 'text-xs font-semibold px-3 py-1 rounded-full border bg-primary/10 text-primary border-primary/30';
+        sb.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i>Completed';
+        document.getElementById('polling-banner').classList.add('hidden');
+        clearTimeout(pollTimer);
+      } else if (data.status === 'running' || data.status === 'pending') {
+        sb.className = 'text-xs font-semibold px-3 py-1 rounded-full border bg-yellow-950/50 text-yellow-300 border-yellow-700';
+        sb.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin mr-1"></i>Scanning…';
+        document.getElementById('polling-banner').classList.remove('hidden');
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(fetchResult, 4000);
+        return;
+      } else if (data.status === 'failed') {
+        sb.className = 'text-xs font-semibold px-3 py-1 rounded-full border bg-red-950/50 text-red-300 border-red-800';
+        sb.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1"></i>Failed';
+      }
+
+      // Stats
+      const counts = { CRITICAL:0, HIGH:0, MEDIUM:0, LOW:0 };
+      (data.findings || []).forEach(f => { if (counts[f.severity] !== undefined) counts[f.severity]++; });
+
+      const score = data.risk_score ?? 0;
+      const scoreEl = document.getElementById('risk-score-display');
+      scoreEl.textContent = score;
+      scoreEl.className   = `text-4xl font-extrabold ${score >= 70 ? 'text-red-400' : score >= 40 ? 'text-yellow-400' : 'text-primary'}`;
+
+      document.getElementById('count-critical').textContent = counts.CRITICAL;
+      document.getElementById('count-high').textContent     = counts.HIGH;
+      document.getElementById('count-medium').textContent   = counts.MEDIUM;
+      document.getElementById('count-low').textContent      = counts.LOW;
+
+      allFindings = data.findings || [];
+      renderFindings(allFindings);
+      document.getElementById('result-content').style.display = '';
+    }
+
+    function renderFindings(findings) {
+      const list = document.getElementById('findings-list');
+      list.innerHTML = '';
+
+      if (!findings.length) {
+        document.getElementById('findings-empty').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('findings-empty').classList.add('hidden');
+
+      findings.forEach((f, i) => {
+        const cfg = SEV_CONFIG[f.severity] || SEV_CONFIG.LOW;
+        const card = document.createElement('div');
+        card.className = `finding-card bg-cardBg rounded-xl border border-gray-800 overflow-hidden`;
+        card.innerHTML = `
+          <button class="w-full text-left px-6 py-4 flex items-start gap-4" onclick="toggleFinding(${i})">
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border shrink-0 mt-0.5 ${cfg.badge}">
+              ${escHtml(f.severity)}
+            </span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-white">${escHtml(f.title)}</p>
+              <p class="text-xs text-gray-500 mt-0.5 truncate">${escHtml(f.location || '')}</p>
+            </div>
+            <i class="fa-solid fa-chevron-down text-gray-500 text-xs mt-1 transition-transform" id="chevron-${i}"></i>
+          </button>
+          <div id="finding-body-${i}" class="hidden border-t border-gray-800 px-6 py-5 space-y-4">
+            <p class="text-sm text-gray-300 leading-relaxed">${escHtml(f.description)}</p>
+            ${f.remediation ? `
+            <div>
+              <p class="text-xs font-semibold text-primary uppercase tracking-wider mb-2">Remediation</p>
+              <p class="text-sm text-gray-400 leading-relaxed">${escHtml(f.remediation)}</p>
+            </div>` : ''}
+            ${f.poc_command ? `
+            <div>
+              <p class="text-xs font-semibold text-orange-400 uppercase tracking-wider mb-2">Proof-of-Concept Command</p>
+              <div class="relative group">
+                <code class="block bg-black/60 border border-gray-700 rounded-lg px-4 py-3 text-xs text-orange-300 font-mono overflow-x-auto whitespace-pre-wrap break-all">${escHtml(f.poc_command)}</code>
+                <button data-cmd="${escHtml(f.poc_command)}" onclick="copyPoc(this)"
+                        class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-primary transition text-xs">
+                  <i class="fa-solid fa-copy"></i>
+                </button>
+              </div>
+              <p class="text-xs text-red-400 mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>For authorized testing only.</p>
+            </div>` : ''}
+            ${f.cvss_score ? `
+            <p class="text-xs text-gray-500">CVSS Score: <span class="text-white font-semibold">${escHtml(String(f.cvss_score))}</span>
+            ${f.cve_id ? ` &bull; <a href="https://nvd.nist.gov/vuln/detail/${escHtml(f.cve_id)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">${escHtml(f.cve_id)}</a>` : ''}</p>` : ''}
+          </div>`;
+        list.appendChild(card);
+      });
+    }
+
+    function toggleFinding(i) {
+      const body    = document.getElementById(`finding-body-${i}`);
+      const chevron = document.getElementById(`chevron-${i}`);
+      const open = body.classList.toggle('hidden');
+      chevron.style.transform = open ? '' : 'rotate(180deg)';
+    }
+
+    let activeFilter = 'ALL';
+    function filterFindings(sev) {
+      activeFilter = sev;
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.toggle('bg-primary', b.id === `filter-${sev}`);
+        b.classList.toggle('text-black', b.id === `filter-${sev}`);
+        b.classList.toggle('border-primary', b.id === `filter-${sev}`);
+        b.classList.toggle('bg-cardBg', b.id !== `filter-${sev}`);
+        b.classList.toggle('text-gray-300', b.id !== `filter-${sev}`);
+        b.classList.toggle('border-gray-700', b.id !== `filter-${sev}`);
+      });
+      const filtered = sev === 'ALL' ? allFindings : allFindings.filter(f => f.severity === sev);
+      renderFindings(filtered);
+    }
+
+    function copyPoc(btn) {
+      const cmd = btn.dataset.cmd || '';
+      navigator.clipboard.writeText(cmd).then(() => {
+        btn.innerHTML = '<i class="fa-solid fa-check text-primary"></i>';
+        setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-copy"></i>', 2000);
+      });
+    }
+
+    function downloadReport(fmt) {
+      window.location.href = `${API_BASE}/api/v1/scans/${encodeURIComponent(scanId)}/report?format=${fmt}`;
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    /* escAttr removed — data-* attributes used instead */
+    function formatDate(iso) {
+      return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    async function logout() {
+      await fetch(`${API_BASE}/api/v1/auth/logout`, { method:'POST', credentials:'include' });
+      window.location.href = '/app/login.html';
+    }
+  </script>
+</body>
+</html>

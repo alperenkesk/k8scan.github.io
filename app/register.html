@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <title>Coming Soon — k8scan</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { darkBg:'#09090b', cardBg:'#18181b', primary:'#10b981' } } }
+    }
+  </script>
+  <style>
+    .glow { box-shadow: 0 0 40px rgba(16,185,129,0.15); }
+    .glow-sm { box-shadow: 0 0 15px rgba(16,185,129,0.2); }
+    @keyframes pulse-ring {
+      0%   { transform: scale(1);   opacity: 0.4; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+    .pulse-ring {
+      animation: pulse-ring 2s ease-out infinite;
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(16px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    .fade-up-2 { animation: fadeUp 0.6s ease 0.15s forwards; opacity:0; }
+    .fade-up-3 { animation: fadeUp 0.6s ease 0.3s forwards; opacity:0; }
+    .fade-up-4 { animation: fadeUp 0.6s ease 0.45s forwards; opacity:0; }
+  </style>
+</head>
+<body class="bg-darkBg text-gray-300 font-sans antialiased min-h-screen flex flex-col items-center justify-center px-6 py-16">
+
+  <!-- Back link -->
+  <a href="/" class="absolute top-6 left-6 text-sm text-gray-500 hover:text-primary transition flex items-center gap-1.5">
+    <i class="fa-solid fa-arrow-left text-xs"></i> Back
+  </a>
+
+  <!-- Logo -->
+  <a href="/" class="text-3xl font-extrabold text-white tracking-tight mb-16 fade-up">
+    k8<span class="text-primary">scan</span>
+  </a>
+
+  <!-- Icon with pulse -->
+  <div class="relative flex items-center justify-center mb-10 fade-up-2">
+    <div class="absolute w-24 h-24 rounded-full bg-primary/20 pulse-ring"></div>
+    <div class="absolute w-24 h-24 rounded-full bg-primary/10 pulse-ring" style="animation-delay:0.5s"></div>
+    <div class="w-20 h-20 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center glow">
+      <i class="fa-solid fa-shield-halved text-3xl text-primary"></i>
+    </div>
+  </div>
+
+  <!-- Headline -->
+  <div class="text-center max-w-lg fade-up-3">
+    <div class="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary text-xs font-semibold px-4 py-1.5 rounded-full mb-6">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary inline-block animate-pulse"></span>
+      In Development
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-4">
+      Coming Soon
+    </h1>
+    <p class="text-gray-400 leading-relaxed mb-10">
+      The k8scan cloud platform is under active development.<br>
+      Join the waitlist and we'll notify you when early access opens.
+    </p>
+
+    <!-- Waitlist form -->
+    <form id="waitlist-form" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onsubmit="handleSubmit(event)">
+      <input
+        type="email"
+        id="email"
+        placeholder="your@email.com"
+        required
+        class="flex-1 bg-cardBg border border-gray-700 text-white text-sm rounded-lg px-4 py-3
+               focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition placeholder-gray-600">
+      <button type="submit"
+              class="bg-primary text-black text-sm font-bold px-6 py-3 rounded-lg hover:bg-emerald-400 transition glow-sm whitespace-nowrap">
+        Notify Me
+      </button>
+    </form>
+
+    <!-- Success state -->
+    <div id="success-msg" class="hidden mt-5 flex items-center justify-center gap-2 text-primary text-sm font-semibold">
+      <i class="fa-solid fa-circle-check"></i> You're on the list. We'll be in touch.
+    </div>
+
+    <p class="mt-5 text-xs text-gray-600">No spam. Unsubscribe anytime.</p>
+  </div>
+
+
+  <script>
+    function handleSubmit(e) {
+      e.preventDefault();
+      document.getElementById('waitlist-form').classList.add('hidden');
+      document.getElementById('success-msg').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

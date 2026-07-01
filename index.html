@@ -1,10 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>k8scan | Kubernetes Security Scanner</title>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 img-src    'self' data: https:;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <title>k8scan | Kubernetes Security Scanning Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -12,91 +17,98 @@
       theme: {
         extend: {
           colors: {
-            darkBg: '#09090b',
-            cardBg: '#18181b',
+            darkBg:  '#09090b',
+            cardBg:  '#18181b',
             primary: '#10b981',
-            primaryGlow: 'rgba(16, 185, 129, 0.15)',
           }
         }
       }
     }
   </script>
   <style>
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #09090b;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #3f3f46;
-      border-radius: 4px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #10b981;
-    }
+    .custom-scrollbar::-webkit-scrollbar { width:8px; height:8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background:#09090b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:#3f3f46; border-radius:4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#10b981; }
+    .glow    { box-shadow: 0 0 30px rgba(16,185,129,0.25); }
+    .glow-sm { box-shadow: 0 0 15px rgba(16,185,129,0.2); }
+    .terminal-line { opacity:0; animation: fadeIn 0.4s forwards; }
+    @keyframes fadeIn { to { opacity:1; } }
+    /* Report preview */
+    .finding-row { border-left: 3px solid transparent; }
+    .finding-row.critical { border-color:#f87171; }
+    .finding-row.high     { border-color:#fb923c; }
+    .finding-row.medium   { border-color:#facc15; }
+    .finding-row.low      { border-color:#a3e635; }
   </style>
 </head>
 
-<body
-  class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar selection:bg-primary selection:text-black relative">
+<body class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar selection:bg-primary selection:text-black">
 
+  <!-- ── HEADER ── -->
   <header class="fixed w-full top-0 bg-darkBg/90 backdrop-blur-md z-50 border-b border-gray-800">
     <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-      <a href="#" class="text-2xl font-bold text-white tracking-tight">
+      <a href="/" class="text-2xl font-bold text-white tracking-tight">
         k8<span class="text-primary">scan</span>
       </a>
       <nav class="hidden md:flex space-x-8 text-sm font-medium">
-        <a href="#report" class="hover:text-primary transition">Dashboard</a>
-        <a href="#features" class="hover:text-primary transition">Features</a>
-        <a href="#install" class="hover:text-primary transition">Installation</a>
-        <a href="#usage" class="hover:text-primary transition">Usage</a>
+        <a href="#pricing"       class="hover:text-primary transition" data-i18n="nav.pricing">Pricing</a>
+        <a href="#features"      class="hover:text-primary transition" data-i18n="nav.features">Features</a>
+        <a href="#how-it-works"  class="hover:text-primary transition" data-i18n="nav.howitworks">How It Works</a>
+        <a href="#sample-report" class="hover:text-primary transition" data-i18n="nav.samplereport">Sample Report</a>
       </nav>
-      <a href="https://github.com/alperenkesk/k8scan" target="_blank"
-        class="bg-cardBg border border-gray-700 hover:border-primary text-white px-5 py-2 rounded-md transition text-sm font-medium flex items-center gap-2">
-        <i class="fa-brands fa-github text-lg"></i> GitHub
-      </a>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer"
+           class="text-sm font-medium text-gray-300 hover:text-primary transition px-4 py-2 flex items-center gap-1.5">
+          <i class="fa-brands fa-github"></i> GitHub
+        </a>
+        <!-- Language toggle -->
+        <div class="bg-cardBg border border-gray-700 rounded-md p-0.5 flex text-xs font-bold">
+          <button id="lang-en" onclick="setLang('en')" class="px-3 py-1.5 rounded bg-primary text-black transition">EN</button>
+          <button id="lang-tr" onclick="setLang('tr')" class="px-3 py-1.5 rounded text-gray-400 transition hover:text-white">TR</button>
+        </div>
+        <a href="/app/register.html"
+           class="bg-primary text-black text-sm font-bold px-5 py-2 rounded-md hover:bg-emerald-400 transition glow-sm"
+           data-i18n="nav.getstarted">Get Started</a>
+      </div>
     </div>
   </header>
 
-  <section class="pt-32 pb-20 md:pt-40 md:pb-20 container mx-auto px-6 flex flex-col lg:flex-row items-center gap-12">
+  <!-- ── HERO ── -->
+  <section class="pt-36 pb-24 container mx-auto px-6 flex flex-col lg:flex-row items-center gap-14">
     <div class="flex-1 text-center lg:text-left">
       <div class="flex flex-wrap justify-center lg:justify-start gap-3 mb-6">
-        <span
-          class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cardBg border border-gray-700 text-xs font-semibold text-gray-300"><i
-            class="fa-brands fa-python text-blue-400"></i> Python 3.8+</span>
-        <span
-          class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cardBg border border-gray-700 text-xs font-semibold text-gray-300"><i
-            class="fa-solid fa-dharmachakra text-blue-500"></i> K8s 1.20+</span>
-        <span
-          class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold"><i
-            class="fa-solid fa-check-double"></i> Tested on Kubernetes-Goat</span>
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold">
+          <i class="fa-brands fa-github"></i> MIT Open Source
+        </span>
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cardBg border border-gray-700 text-xs font-semibold text-gray-300">
+          <i class="fa-solid fa-dharmachakra text-blue-400"></i> <span data-i18n="hero.badge2">Helm &amp; Manifest Support</span>
+        </span>
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-cardBg border border-gray-700 text-xs font-semibold text-gray-300">
+          <i class="fa-solid fa-server text-yellow-400"></i> <span data-i18n="hero.badge3">On-Prem Ready</span>
+        </span>
       </div>
       <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-6">
-        Kubernetes Security <br>
+        Kubernetes Security<br>
         <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-300">Scanner.</span>
       </h1>
-      <p class="text-lg text-gray-400 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-        An advanced Kubernetes vulnerability scanner that identifies critical misconfigurations, supply chain risks, and
-        container escapes. Built to support DevSecOps workflows, it provides security teams with actionable
-        <b>Proof-of-Concept (PoC) commands</b> and an interactive HTML dashboard.
+      <p class="text-lg text-gray-400 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed" data-i18n-html="hero.desc">
+        Upload your Helm charts or Kubernetes manifests and k8scan scans for misconfigurations, exposed secrets, RBAC flaws, and container escape vectors&mdash;then correlates findings into <strong class="text-white">Capability Breaks</strong> and multi-stage attack paths with validation-grade PoC commands.
       </p>
       <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-        <a href="https://github.com/alperenkesk/k8scan" target="_blank"
-          class="bg-primary text-black font-bold py-3 px-8 rounded-md hover:bg-emerald-400 transition shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2">
-          <i class="fa-brands fa-github text-xl"></i> View on GitHub
+        <a href="/app/register.html"
+           class="bg-primary text-black font-bold py-3 px-8 rounded-md hover:bg-emerald-400 transition glow flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rocket"></i> <span data-i18n="hero.cta1">Get Started</span>
         </a>
-        <a href="#install"
-          class="bg-cardBg border border-gray-700 text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-terminal"></i> Installation
+        <a href="#pricing"
+           class="bg-cardBg border border-gray-700 text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-tag"></i> <span data-i18n="hero.cta2">View Pricing</span>
         </a>
       </div>
+      <p class="mt-4 text-xs text-gray-500" data-i18n="hero.hint">Starting at $9/mo &bull; Cancel anytime</p>
     </div>
 
+    <!-- Terminal demo -->
     <div class="flex-1 w-full max-w-2xl">
       <div class="bg-[#0c0c0e] rounded-xl border border-gray-800 shadow-2xl overflow-hidden font-mono text-sm">
         <div class="flex items-center px-4 py-3 border-b border-gray-800 bg-[#141417]">
@@ -105,192 +117,521 @@
             <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
             <div class="w-3 h-3 rounded-full bg-green-500"></div>
           </div>
-          <div class="mx-auto text-xs text-gray-500">bash - k8scan</div>
+          <div class="mx-auto text-xs text-gray-500">k8scan &mdash; Capability Break Analysis</div>
         </div>
-        <div class="p-6 overflow-x-auto custom-scrollbar">
-          <p class="text-gray-400"><span class="text-primary">➜</span> <span class="text-white">k8scan</span> scan
-            --namespace production --severity CRITICAL</p>
-          <p class="text-gray-500 mt-2">[*] Initializing Kubernetes Security Scanner v1.0...</p>
-          <p class="text-gray-500">[*] Target Namespace: production</p>
-          <br>
-          <p class="text-red-400 font-bold">[!] CRITICAL: Privileged Pod Detected</p>
-          <p class="text-gray-400"> Pod: <span class="text-white">api-gateway-core</span></p>
-          <p class="text-gray-400"> Risk: <span class="text-white">Container Escape / Host Compromise</span></p>
-          <br>
-          <p class="text-emerald-400 font-bold">[+] Automated PoC Generated:</p>
-          <p class="text-gray-300 bg-gray-900 p-2 rounded mt-1 border border-gray-700 text-xs">kubectl exec -it
-            api-gateway-core -n production -- nsenter -t 1 -m -u -n -i sh</p>
-          <br>
-          <p class="text-gray-400">[+] Scan complete. Found 1 critical vulnerability.</p>
-          <p class="text-primary">[+] HTML report saved to: reports/security-audit.html</p>
-        </div>
+        <div class="p-6 space-y-1 overflow-x-auto custom-scrollbar" id="terminal"></div>
       </div>
     </div>
   </section>
 
-  <section id="report" class="py-20 bg-darkBg border-t border-gray-800">
-    <div class="container mx-auto px-6 text-center">
-      <h2 class="text-3xl font-bold text-white mb-4">Interactive HTML Dashboard</h2>
-      <p class="text-gray-400 max-w-2xl mx-auto mb-10">Beautiful, collapsible reports with color-coded severity
-        indicators. Easily share findings with your team.</p>
-
-      <div
-        class="max-w-5xl mx-auto bg-cardBg rounded-xl border border-gray-800 shadow-2xl overflow-hidden relative group">
-        <div class="flex items-center px-4 py-3 border-b border-gray-800 bg-[#141417]">
-          <div class="flex space-x-2">
-            <div class="w-3 h-3 rounded-full bg-gray-600"></div>
-            <div class="w-3 h-3 rounded-full bg-gray-600"></div>
-            <div class="w-3 h-3 rounded-full bg-gray-600"></div>
-          </div>
-          <div
-            class="mx-auto flex items-center bg-darkBg px-3 py-1 rounded-md border border-gray-700 text-xs text-gray-400">
-            <i class="fa-solid fa-lock text-green-500 mr-2"></i> localhost:8000/reports/security-audit.html
-          </div>
-        </div>
-        <img src="https://raw.githubusercontent.com/alperenkesk/k8scan/main/screenshots/html-report.png"
-          alt="k8scan HTML Report"
-          class="w-full object-cover border-none opacity-90 group-hover:opacity-100 transition duration-300 fallback-bg">
-
-        <div class="absolute inset-0 flex items-center justify-center -z-10 bg-gray-900">
-          <span class="text-gray-500"><i class="fa-regular fa-image mr-2"></i>Dashboard Screenshot Goes Here</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="features" class="py-20 bg-[#0c0c0e] border-t border-gray-800">
+  <!-- ── PRICING ── -->
+  <section id="pricing" class="py-24 bg-[#0c0c0e] border-t border-gray-800">
     <div class="container mx-auto px-6">
-      <h2 class="text-3xl font-bold text-center text-white mb-16">Key Features</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4" data-i18n="pricing.title">Simple, Transparent Pricing</h2>
+        <p class="text-gray-400 max-w-xl mx-auto" data-i18n="pricing.subtitle">Pay as you grow. No hidden fees. Cancel anytime.</p>
+      </div>
 
-        <div class="bg-cardBg p-6 rounded-xl border border-gray-800 hover:border-primary/50 transition">
-          <i class="fa-solid fa-shield-halved text-2xl text-primary mb-4"></i>
-          <h3 class="text-lg font-bold text-white mb-2">Safe & Read-Only</h3>
-          <p class="text-gray-400 text-sm">Exclusively performs read operations, making it 100% safe for production
-            environments.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+
+        <!-- Starter -->
+        <div class="bg-cardBg rounded-xl border border-gray-800 p-8 flex flex-col">
+          <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Starter</p>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold text-white" id="starter-price">$9</span>
+            <span class="text-gray-500 ml-1">/mo</span>
+          </div>
+          <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-1">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.s.f1">3 scans / month</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.s.f2">Charts up to 5 MB</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.s.f3">HTML report download</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> 123+ security checks</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> PoC commands</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-gray-600 w-4"></i> <span class="text-gray-500" data-i18n="pricing.s.f6">Team access</span></li>
+          </ul>
+          <a href="/app/register.html?plan=starter"
+             class="w-full text-center bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-md hover:bg-gray-700 transition"
+             data-i18n="pricing.s.cta">Get Started</a>
         </div>
 
-        <div class="bg-cardBg p-6 rounded-xl border border-gray-800 hover:border-primary/50 transition">
-          <i class="fa-solid fa-chart-pie text-2xl text-primary mb-4"></i>
-          <h3 class="text-lg font-bold text-white mb-2">Executive Summary</h3>
-          <p class="text-gray-400 text-sm">High-level overview with attack surface analysis and detailed scoring.</p>
+        <!-- Pro (highlighted) -->
+        <div class="bg-cardBg rounded-xl border-2 border-primary p-8 flex flex-col relative glow">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+            <span class="bg-primary text-black text-xs font-extrabold px-4 py-1 rounded-full uppercase tracking-wider" data-i18n="pricing.popular">Most Popular</span>
+          </div>
+          <p class="text-sm font-semibold text-primary uppercase tracking-wider mb-4">Pro</p>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold text-white" id="pro-price">$29</span>
+            <span class="text-gray-500 ml-1">/mo</span>
+          </div>
+          <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-1">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f1">10 scans / month</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f2">Charts up to 50 MB</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> HTML &amp; JSON reports</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Full PoC commands</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f5">5 team members</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f6">Slack notifications</span></li>
+          </ul>
+          <a href="/app/register.html?plan=pro"
+             class="w-full text-center bg-primary text-black font-bold py-3 rounded-md hover:bg-emerald-400 transition"
+             data-i18n="pricing.p.cta">Start Pro</a>
         </div>
 
-        <div class="bg-cardBg p-6 rounded-xl border border-gray-800 hover:border-primary/50 transition">
-          <i class="fa-solid fa-bullseye text-2xl text-primary mb-4"></i>
-          <h3 class="text-lg font-bold text-white mb-2">Risk Scoring</h3>
-          <p class="text-gray-400 text-sm">0-100 security rating with category-specific breakdowns (RBAC, Network, CLI,
-            etc.).</p>
-        </div>
-
-        <div class="bg-cardBg p-6 rounded-xl border border-gray-800 hover:border-primary/50 transition">
-          <i class="fa-solid fa-palette text-2xl text-primary mb-4"></i>
-          <h3 class="text-lg font-bold text-white mb-2">Beautiful Reports</h3>
-          <p class="text-gray-400 text-sm">Collapsible, portable HTML reports with color-coded severity indicators.</p>
-        </div>
-
-        <div class="bg-cardBg p-6 rounded-xl border border-gray-800 hover:border-primary/50 transition">
-          <i class="fa-solid fa-rocket text-2xl text-primary mb-4"></i>
-          <h3 class="text-lg font-bold text-white mb-2">Progress Tracking</h3>
-          <p class="text-gray-400 text-sm">Real-time visual progress bars directly in the terminal during scanning.</p>
-        </div>
-
-        <div class="bg-cardBg p-6 rounded-xl border border-gray-800 hover:border-primary/50 transition">
-          <i class="fa-solid fa-server text-2xl text-primary mb-4"></i>
-          <h3 class="text-lg font-bold text-white mb-2">Secure File Server</h3>
-          <p class="text-gray-400 text-sm">Share generated HTML reports seamlessly using the built-in HTTP server (<code
-              class="text-primary text-xs">serve</code> command).</p>
+        <!-- Enterprise -->
+        <div class="bg-cardBg rounded-xl border border-gray-800 p-8 flex flex-col">
+          <p class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Enterprise</p>
+          <div class="mb-6">
+            <span class="text-4xl font-extrabold text-white" id="ent-price">Custom</span>
+          </div>
+          <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-1">
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f1">Unlimited scans</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f2">Unlimited chart size</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f3">All report formats</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Full PoC commands</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f5">Unlimited team members</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> SSO / SAML</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f7">SLA + Priority support</span></li>
+          </ul>
+          <a href="/app/register.html?plan=enterprise"
+             class="w-full text-center bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-md hover:bg-gray-700 transition"
+             data-i18n="pricing.e.cta">Contact Sales</a>
         </div>
 
       </div>
     </div>
   </section>
 
-  <section id="install" class="py-20 bg-darkBg border-t border-gray-800">
+  <!-- ── ON-PREM ── -->
+  <section id="on-prem" class="py-24 bg-darkBg border-t border-gray-800">
     <div class="container mx-auto px-6 max-w-5xl">
-      <h2 class="text-3xl font-bold text-white mb-10 text-center">Installation & Usage</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
-          <div class="px-4 py-3 border-b border-gray-800 bg-[#141417] flex items-center justify-between">
-            <span class="text-sm font-bold text-gray-300">Quick Install (Local)</span>
-          </div>
-          <div class="p-6 font-mono text-sm text-gray-400">
-            <p>git clone https://github.com/alperenkesk/k8scan.git</p>
-            <p>cd k8scan</p>
-            <p>pip install -r requirements.txt</p>
-            <p>pip install -e .</p>
-          </div>
+        <!-- Left: text -->
+        <div>
+          <span class="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
+            <i class="fa-solid fa-building-shield"></i> <span data-i18n="onprem.badge">Enterprise / On-Prem</span>
+          </span>
+          <h2 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-6" data-i18n="onprem.title">
+            Your data never leaves your infrastructure.
+          </h2>
+          <p class="text-gray-400 leading-relaxed mb-8" data-i18n="onprem.desc">
+            For organizations with strict data sovereignty requirements — government agencies, financial institutions, and critical infrastructure operators — k8scan deploys entirely within your own environment. No telemetry, no external API calls, no cloud dependency.
+          </p>
+          <a href="mailto:start@k8scan.com"
+             class="inline-flex items-center gap-2 bg-primary text-black font-bold px-6 py-3 rounded-lg hover:bg-emerald-400 transition glow-sm">
+            <i class="fa-solid fa-envelope"></i> <span data-i18n="onprem.cta">Get in Touch</span>
+          </a>
+          <p class="mt-3 text-xs text-gray-600">start@k8scan.com</p>
         </div>
 
-        <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
-          <div class="px-4 py-3 border-b border-gray-800 bg-[#141417] flex items-center justify-between">
-            <span class="text-sm font-bold text-gray-300">Docker Installation</span>
+        <!-- Right: feature list -->
+        <div class="space-y-5">
+          <div class="flex items-start gap-4 bg-cardBg rounded-xl border border-gray-800 p-5">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fa-solid fa-lock text-primary"></i>
+            </div>
+            <div>
+              <p class="text-white font-semibold mb-1" data-i18n="onprem.f1.title">Zero Data Egress</p>
+              <p class="text-gray-400 text-sm" data-i18n="onprem.f1.desc">All scan data, findings, and reports stay inside your cluster. Nothing is sent to external servers.</p>
+            </div>
           </div>
-          <div class="p-6 font-mono text-sm text-gray-400">
-            <p>docker build -t k8scan .</p>
-            <p>docker run -v ~/.kube:/root/.kube:ro k8scan scan</p>
+          <div class="flex items-start gap-4 bg-cardBg rounded-xl border border-gray-800 p-5">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fa-solid fa-dharmachakra text-primary"></i>
+            </div>
+            <div>
+              <p class="text-white font-semibold mb-1" data-i18n="onprem.f2.title">Helm-Based Deployment</p>
+              <p class="text-gray-400 text-sm" data-i18n="onprem.f2.desc">Deploy as a Kubernetes Job or CronJob using the provided Helm chart. Runs in air-gapped environments.</p>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <h3 id="usage" class="text-2xl font-bold text-white mb-6 border-b border-gray-800 pb-2 pt-10">Usage Examples</h3>
-
-      <div class="bg-cardBg p-6 rounded-lg border border-gray-800 mb-8 font-mono text-sm">
-        <p class="text-gray-500 mb-1"># Basic scan (safe, read-only)</p>
-        <p class="text-primary mb-4">k8scan scan --exclude-system</p>
-
-        <p class="text-gray-500 mb-1"># Full cluster scan with all formats</p>
-        <p class="text-primary mb-4">k8scan scan --output all -f security-audit</p>
-
-        <p class="text-gray-500 mb-1"># Serve generated reports securely</p>
-        <p class="text-primary">k8scan serve reports/security-audit.html reports/security-audit.json</p>
-      </div>
-
-      <h4 class="text-lg font-bold text-white mb-4">🛠 Scenarios</h4>
-      <div class="space-y-4">
-
-        <div class="bg-[#0c0c0e] p-5 rounded-lg border border-gray-800">
-          <p class="text-white font-sans font-bold mb-1">1. Production Environment Check (Safe)</p>
-          <p class="text-gray-400 font-sans text-sm mb-3">Run a read-only scan focusing on critical issues in the
-            production namespace.</p>
-          <p class="text-primary font-mono text-sm bg-black/50 p-2 rounded border border-gray-800">k8scan scan
-            --namespace production --severity CRITICAL --output all</p>
-        </div>
-
-        <div class="bg-[#0c0c0e] p-5 rounded-lg border border-gray-800">
-          <p class="text-white font-sans font-bold mb-1">2. Weekly Security Audit</p>
-          <p class="text-gray-400 font-sans text-sm mb-3">Generate a comprehensive HTML report excluding system
-            namespaces, and directly serve it.</p>
-          <p class="text-primary font-mono text-sm bg-black/50 p-2 rounded border border-gray-800">k8scan scan
-            --exclude-system --output html -f weekly-audit --serve --port 9000</p>
-        </div>
-
-        <div class="bg-[#0c0c0e] p-5 rounded-lg border border-gray-800">
-          <p class="text-white font-sans font-bold mb-1">3. CI/CD Pipeline (JSON Output)</p>
-          <p class="text-gray-400 font-sans text-sm mb-3">Export findings in a machine-readable format for downstream
-            analysis or alerting.</p>
-          <p class="text-primary font-mono text-sm bg-black/50 p-2 rounded border border-gray-800">k8scan scan
-            --severity CRITICAL --output json</p>
+          <div class="flex items-start gap-4 bg-cardBg rounded-xl border border-gray-800 p-5">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fa-solid fa-file-shield text-primary"></i>
+            </div>
+            <div>
+              <p class="text-white font-semibold mb-1" data-i18n="onprem.f3.title">Compliance Ready</p>
+              <p class="text-gray-400 text-sm" data-i18n="onprem.f3.desc">Meets data residency and sovereignty requirements. Suitable for public sector procurement processes.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4 bg-cardBg rounded-xl border border-gray-800 p-5">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fa-solid fa-headset text-primary"></i>
+            </div>
+            <div>
+              <p class="text-white font-semibold mb-1" data-i18n="onprem.f4.title">SLA-Backed Support</p>
+              <p class="text-gray-400 text-sm" data-i18n="onprem.f4.desc">Dedicated installation support, documented deployment process, and ongoing SLA for enterprise customers.</p>
+            </div>
+          </div>
         </div>
 
       </div>
     </div>
   </section>
 
-  <footer class="bg-[#050505] py-12 border-t border-gray-800">
-    <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-      <div class="flex items-center text-2xl font-bold text-white tracking-tight opacity-80">
-        k8<span class="text-primary">scan</span>
+  <!-- ── FEATURES ── -->
+  <section id="features" class="py-24 bg-darkBg border-t border-gray-800">
+    <div class="container mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4" data-i18n="features.title">Everything you need to secure Kubernetes</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto" data-i18n="features.subtitle">123+ checks across 8 categories&mdash;from misconfiguration detection to full attack chain modeling.</p>
       </div>
-      <p class="text-gray-500 text-sm text-center md:text-left">
-        Crafted for Security Researchers by <a href="https://github.com/alperenkesk"
-          class="text-primary hover:underline font-medium">alperenkesk</a>.
-      </p>
-      <div class="flex space-x-5">
-        <a href="https://github.com/alperenkesk/k8scan" class="text-gray-500 hover:text-white transition"><i
-            class="fa-brands fa-github text-2xl"></i></a>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="bg-cardBg p-7 rounded-xl border border-gray-800 hover:border-primary/50 transition group">
+          <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition">
+            <i class="fa-solid fa-diagram-project text-xl text-primary"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f1.title">Capability Break Engine</h3>
+          <p class="text-gray-400 text-sm leading-relaxed" data-i18n="f1.desc">Correlates individual findings into structured proofs that a named security boundary&mdash;container isolation, RBAC, namespace isolation&mdash;is broken. Not a finding list. An attack model.</p>
+        </div>
+        <div class="bg-cardBg p-7 rounded-xl border border-gray-800 hover:border-primary/50 transition group">
+          <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition">
+            <i class="fa-solid fa-sitemap text-xl text-primary"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f2.title">Compound Attack Paths</h3>
+          <p class="text-gray-400 text-sm leading-relaxed" data-i18n="f2.desc">When two or more Capability Breaks chain together, k8scan surfaces a Compound Break&mdash;a complete multi-stage attack path with MITRE ATT&CK mapping and blast radius.</p>
+        </div>
+        <div class="bg-cardBg p-7 rounded-xl border border-gray-800 hover:border-primary/50 transition group">
+          <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition">
+            <i class="fa-solid fa-bullseye text-xl text-primary"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f3.title">Validation-Grade PoC Commands</h3>
+          <p class="text-gray-400 text-sm leading-relaxed" data-i18n="f3.desc">Every Capability Break includes read-only kubectl commands that confirm the misconfiguration exists without modifying cluster state.</p>
+        </div>
+        <div class="bg-cardBg p-7 rounded-xl border border-gray-800 hover:border-primary/50 transition group">
+          <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition">
+            <i class="fa-solid fa-file-code text-xl text-primary"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f4.title">Helm &amp; Manifest Static Analysis</h3>
+          <p class="text-gray-400 text-sm leading-relaxed" data-i18n="f4.desc">Scan .tgz chart packages, ZIP archives of YAML dumps, or raw manifests&mdash;without a live cluster. Integrates with GitHub Actions, GitLab CI, and any CI pipeline.</p>
+        </div>
+        <div class="bg-cardBg p-7 rounded-xl border border-gray-800 hover:border-primary/50 transition group">
+          <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition">
+            <i class="fa-solid fa-shield-halved text-xl text-primary"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f5.title">123+ Checks, 8 Categories</h3>
+          <p class="text-gray-400 text-sm leading-relaxed" data-i18n="f5.desc">Container security, RBAC, secrets, network policy, control plane, workload hygiene, image integrity, and runtime threats&mdash;all CIS Benchmark mapped.</p>
+        </div>
+        <div class="bg-cardBg p-7 rounded-xl border border-gray-800 hover:border-primary/50 transition group">
+          <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition">
+            <i class="fa-solid fa-server text-xl text-primary"></i>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="f6.title">SaaS &amp; On-Prem Deployment</h3>
+          <p class="text-gray-400 text-sm leading-relaxed" data-i18n="f6.desc">Use the cloud platform or deploy entirely on your own infrastructure. On-prem mode keeps all data in-house&mdash;no telemetry, no external calls.</p>
+        </div>
       </div>
+    </div>
+  </section>
+
+  <!-- ── SCREENSHOTS ── -->
+  <section class="py-24 bg-[#0c0c0e] border-t border-gray-800">
+    <div class="container mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4" data-i18n="ss.title">See It In Action</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto" data-i18n="ss.subtitle">Real output from k8scan running against a production Kubernetes cluster.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
+          <img src="screenshots/html-report.png" alt="k8scan HTML Report" class="w-full object-cover">
+          <div class="p-4">
+            <p class="text-white font-semibold text-sm" data-i18n="ss.1.title">HTML Report</p>
+            <p class="text-gray-500 text-xs mt-1" data-i18n="ss.1.desc">Color-coded findings with severity, location, and remediation guidance.</p>
+          </div>
+        </div>
+        <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
+          <img src="screenshots/capability-breaks.png" alt="Capability Breaks" class="w-full object-cover">
+          <div class="p-4">
+            <p class="text-white font-semibold text-sm" data-i18n="ss.2.title">Capability Break Analysis</p>
+            <p class="text-gray-500 text-xs mt-1" data-i18n="ss.2.desc">Structured proof that a named security boundary is broken, with weighted confidence scores.</p>
+          </div>
+        </div>
+        <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
+          <img src="screenshots/attack-graph.png" alt="Attack Graph" class="w-full object-cover">
+          <div class="p-4">
+            <p class="text-white font-semibold text-sm" data-i18n="ss.3.title">Interactive Attack Graph</p>
+            <p class="text-gray-500 text-xs mt-1" data-i18n="ss.3.desc">Visual lateral movement path from initial access to final target.</p>
+          </div>
+        </div>
+        <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
+          <img src="screenshots/proof-of-concept.png" alt="Proof of Concept Commands" class="w-full object-cover">
+          <div class="p-4">
+            <p class="text-white font-semibold text-sm" data-i18n="ss.4.title">Proof-of-Concept Commands</p>
+            <p class="text-gray-500 text-xs mt-1" data-i18n="ss.4.desc">Read-only kubectl commands that validate each finding without modifying cluster state.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section id="how-it-works" class="py-24 bg-darkBg border-t border-gray-800">
+    <div class="container mx-auto px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4" data-i18n="hiw.title">How It Works</h2>
+        <p class="text-gray-400 max-w-xl mx-auto" data-i18n="hiw.subtitle">From upload to attack chain report in seconds.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-5">
+            <span class="text-2xl font-extrabold text-primary">1</span>
+          </div>
+          <h3 class="text-white font-bold mb-2" data-i18n="hiw.1.title">Upload Your Chart or Manifest</h3>
+          <p class="text-gray-400 text-sm" data-i18n="hiw.1.desc">Provide a Helm .tgz, a ZIP of YAML manifests, or point k8scan at a live cluster. Files are encrypted at rest.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-5">
+            <span class="text-2xl font-extrabold text-primary">2</span>
+          </div>
+          <h3 class="text-white font-bold mb-2" data-i18n="hiw.2.title">Capability Break Analysis</h3>
+          <p class="text-gray-400 text-sm" data-i18n="hiw.2.desc">123+ checks across 8 categories run instantly. The engine then correlates findings into Capability Breaks and chains them into multi-stage attack paths.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-5">
+            <span class="text-2xl font-extrabold text-primary">3</span>
+          </div>
+          <h3 class="text-white font-bold mb-2" data-i18n="hiw.3.title">Get Your Report</h3>
+          <p class="text-gray-400 text-sm" data-i18n="hiw.3.desc">Download HTML, JSON, SARIF, or Markdown reports. Every Capability Break includes a validated PoC command and attack graph.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SAMPLE REPORT ── -->
+  <section id="sample-report" class="py-24 bg-darkBg border-t border-gray-800">
+    <div class="container mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4" data-i18n="report.title">See a Real Report</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto" data-i18n="report.subtitle">This is what a k8scan report looks like for a real-world Helm chart deployment with vulnerabilities.</p>
+      </div>
+
+      <!-- Browser chrome wrapper -->
+      <div class="max-w-5xl mx-auto bg-[#0c0c0e] rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
+        <!-- Tab bar -->
+        <div class="flex items-center px-4 py-3 border-b border-gray-800 bg-[#141417] gap-3">
+          <div class="flex space-x-2">
+            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+          </div>
+          <div class="flex-1 flex items-center bg-darkBg px-3 py-1.5 rounded-md border border-gray-700 text-xs text-gray-400 max-w-md mx-auto">
+            <i class="fa-solid fa-lock text-primary mr-2 text-xs"></i>
+            app.k8scan.io/scan/nginx-ingress-4.9.1
+          </div>
+        </div>
+
+        <!-- Report content -->
+        <div class="p-8">
+          <!-- Header row -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <h3 class="text-xl font-extrabold text-white mb-1">k8<span class="text-primary">scan</span> &mdash; Security Report</h3>
+              <p class="text-xs text-gray-500">nginx-ingress-4.9.1.tgz &bull; Scanned Apr 12 2025 &bull; 8 templates analyzed</p>
+            </div>
+            <div class="flex gap-3">
+              <span class="inline-flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/30 text-xs font-bold px-3 py-1.5 rounded-full">
+                <i class="fa-solid fa-circle-check"></i> Completed
+              </span>
+            </div>
+          </div>
+
+          <!-- Score + counts row -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
+            <div class="sm:col-span-1 bg-cardBg rounded-xl border border-gray-800 p-4 text-center">
+              <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Risk Score</p>
+              <p class="text-4xl font-extrabold text-red-400">72</p>
+              <p class="text-xs text-gray-500 mt-1">/ 100</p>
+            </div>
+            <div class="bg-cardBg rounded-xl border border-gray-800 p-4 text-center">
+              <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Critical</p>
+              <p class="text-3xl font-extrabold text-red-400">2</p>
+            </div>
+            <div class="bg-cardBg rounded-xl border border-gray-800 p-4 text-center">
+              <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">High</p>
+              <p class="text-3xl font-extrabold text-orange-400">3</p>
+            </div>
+            <div class="bg-cardBg rounded-xl border border-gray-800 p-4 text-center">
+              <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Medium</p>
+              <p class="text-3xl font-extrabold text-yellow-400">4</p>
+            </div>
+            <div class="bg-cardBg rounded-xl border border-gray-800 p-4 text-center">
+              <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Low</p>
+              <p class="text-3xl font-extrabold text-green-400">2</p>
+            </div>
+          </div>
+
+          <!-- Findings list -->
+          <h4 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Findings</h4>
+          <div class="space-y-3">
+
+            <!-- Finding 1 – Critical -->
+            <details class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden finding-row critical">
+              <summary class="px-5 py-4 flex items-center gap-3 cursor-pointer list-none">
+                <span class="inline-flex items-center gap-1.5 bg-red-950/60 text-red-300 border border-red-800 text-xs font-extrabold px-3 py-1 rounded-full shrink-0">CRITICAL</span>
+                <span class="text-sm font-semibold text-white flex-1">Privileged Container Detected</span>
+                <span class="text-xs text-gray-500 hidden sm:block">deployment.yaml:42 &rarr; container:ingress-nginx</span>
+                <i class="fa-solid fa-chevron-down text-primary text-xs ml-2"></i>
+              </summary>
+              <div class="border-t border-gray-800 px-5 py-4 space-y-3">
+                <p class="text-sm text-gray-300 leading-relaxed">Container <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">ingress-nginx</code> runs with <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">privileged: true</code>, granting full host access. This allows a container breakout to the underlying node.</p>
+                <p class="text-sm"><span class="text-primary font-semibold">Remediation:</span> <span class="text-gray-400">Set <code class="text-xs bg-gray-900 px-1 py-0.5 rounded text-primary">securityContext.privileged: false</code> and use specific Linux capabilities instead.</span></p>
+                <div>
+                  <p class="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Proof-of-Concept Command</p>
+                  <code class="block bg-black/70 border border-gray-700 rounded-lg px-4 py-3 text-xs text-orange-300 font-mono">kubectl exec -it ingress-nginx-controller -- nsenter -t 1 -m -u -n -i sh</code>
+                  <p class="text-xs text-red-400 mt-1">For authorized testing only.</p>
+                </div>
+                <p class="text-xs text-gray-500">CVSS: <strong class="text-white">9.8</strong> &bull; Check ID: K8S-001</p>
+              </div>
+            </details>
+
+            <!-- Finding 2 – Critical -->
+            <details class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden finding-row critical">
+              <summary class="px-5 py-4 flex items-center gap-3 cursor-pointer list-none">
+                <span class="inline-flex items-center gap-1.5 bg-red-950/60 text-red-300 border border-red-800 text-xs font-extrabold px-3 py-1 rounded-full shrink-0">CRITICAL</span>
+                <span class="text-sm font-semibold text-white flex-1">Wildcard ClusterRole Permission</span>
+                <span class="text-xs text-gray-500 hidden sm:block">clusterrole.yaml:18 &rarr; ClusterRole/ingress-nginx</span>
+                <i class="fa-solid fa-chevron-down text-primary text-xs ml-2"></i>
+              </summary>
+              <div class="border-t border-gray-800 px-5 py-4 space-y-3">
+                <p class="text-sm text-gray-300 leading-relaxed">ClusterRole uses <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">verbs: ["*"]</code> and <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">resources: ["*"]</code>, granting unrestricted access to all Kubernetes resources.</p>
+                <p class="text-sm"><span class="text-primary font-semibold">Remediation:</span> <span class="text-gray-400">Replace wildcards with explicit resource/verb lists following the principle of least privilege.</span></p>
+                <p class="text-xs text-gray-500">CVSS: <strong class="text-white">9.1</strong> &bull; Check ID: K8S-020</p>
+              </div>
+            </details>
+
+            <!-- Finding 3 – High -->
+            <details class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden finding-row high">
+              <summary class="px-5 py-4 flex items-center gap-3 cursor-pointer list-none">
+                <span class="inline-flex items-center gap-1.5 bg-orange-950/60 text-orange-300 border border-orange-800 text-xs font-extrabold px-3 py-1 rounded-full shrink-0">HIGH</span>
+                <span class="text-sm font-semibold text-white flex-1">No NetworkPolicy Defined</span>
+                <span class="text-xs text-gray-500 hidden sm:block">(global)</span>
+                <i class="fa-solid fa-chevron-down text-primary text-xs ml-2"></i>
+              </summary>
+              <div class="border-t border-gray-800 px-5 py-4 space-y-3">
+                <p class="text-sm text-gray-300 leading-relaxed">No NetworkPolicy resource found in the chart. All pods can freely communicate with each other and reach the internet, violating network segmentation best practices.</p>
+                <p class="text-sm"><span class="text-primary font-semibold">Remediation:</span> <span class="text-gray-400">Define NetworkPolicy resources to enforce least-privilege network segmentation per namespace.</span></p>
+                <p class="text-xs text-gray-500">CVSS: <strong class="text-white">7.0</strong> &bull; Check ID: K8S-050</p>
+              </div>
+            </details>
+
+            <!-- Finding 4 – Medium (collapsed placeholder) -->
+            <div class="bg-cardBg rounded-xl border border-gray-800 px-5 py-4 flex items-center gap-3 finding-row medium opacity-60">
+              <span class="inline-flex items-center gap-1.5 bg-yellow-950/60 text-yellow-300 border border-yellow-800 text-xs font-extrabold px-3 py-1 rounded-full shrink-0">MEDIUM</span>
+              <span class="text-sm font-semibold text-white flex-1">No Resource Limits Defined</span>
+              <span class="text-xs text-gray-500 hidden sm:block">deployment.yaml:55 &rarr; container:ingress-nginx</span>
+            </div>
+
+            <div class="bg-cardBg rounded-xl border border-gray-800 px-5 py-4 flex items-center gap-3 finding-row medium opacity-60">
+              <span class="inline-flex items-center gap-1.5 bg-yellow-950/60 text-yellow-300 border border-yellow-800 text-xs font-extrabold px-3 py-1 rounded-full shrink-0">MEDIUM</span>
+              <span class="text-sm font-semibold text-white flex-1">Privilege Escalation Not Disabled</span>
+              <span class="text-xs text-gray-500 hidden sm:block">deployment.yaml:42 &rarr; container:ingress-nginx</span>
+            </div>
+
+            <div class="flex items-center justify-between py-4 px-1">
+              <span class="text-xs text-gray-600">+ 6 more findings hidden in this preview</span>
+              <a href="sample-report.html" target="_blank"
+                 class="inline-flex items-center gap-2 bg-cardBg border border-primary/40 text-primary text-xs font-bold px-4 py-2 rounded-lg hover:bg-primary/10 transition">
+                <i class="fa-solid fa-file-lines"></i> View Full Sample Report
+              </a>
+            </div>
+          </div>
+
+          <!-- Download row -->
+          <div class="flex flex-wrap gap-3 mt-8 pt-6 border-t border-gray-800">
+            <a href="/app/register.html"
+               class="inline-flex items-center gap-2 bg-primary text-black text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-400 transition">
+              <i class="fa-solid fa-rocket"></i> Scan Your Own Charts
+            </a>
+            <button class="inline-flex items-center gap-2 bg-cardBg border border-gray-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg hover:border-primary transition" onclick="alert('Sign up to download full reports')">
+              <i class="fa-solid fa-download"></i> Download HTML Report
+            </button>
+            <button class="inline-flex items-center gap-2 bg-cardBg border border-gray-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg hover:border-primary transition" onclick="alert('Sign up to download full reports')">
+              <i class="fa-solid fa-code"></i> Download JSON
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ── -->
+  <section class="py-20 bg-[#0c0c0e] border-t border-gray-800">
+    <div class="container mx-auto px-6 max-w-3xl">
+      <h2 class="text-3xl font-extrabold text-white text-center mb-12" data-i18n="faq.title">Frequently Asked Questions</h2>
+      <div class="space-y-4" id="faq">
+        <div class="faq-item bg-cardBg rounded-xl border border-gray-800">
+          <button class="faq-q w-full flex justify-between items-center px-6 py-5 text-left font-semibold text-white" onclick="toggleFaq(this)">
+            <span data-i18n="faq.1.q">Are my Helm charts stored permanently?</span>
+            <i class="fa-solid fa-chevron-down text-primary text-sm transition-transform"></i>
+          </button>
+          <div class="faq-a hidden px-6 pb-5 text-gray-400 text-sm leading-relaxed" data-i18n="faq.1.a">
+            No. Uploaded charts are stored encrypted at rest and automatically deleted after 24 hours. We never share or use your chart data for any purpose other than scanning.
+          </div>
+        </div>
+        <div class="faq-item bg-cardBg rounded-xl border border-gray-800">
+          <button class="faq-q w-full flex justify-between items-center px-6 py-5 text-left font-semibold text-white" onclick="toggleFaq(this)">
+            <span data-i18n="faq.2.q">What file formats are supported?</span>
+            <i class="fa-solid fa-chevron-down text-primary text-sm transition-transform"></i>
+          </button>
+          <div class="faq-a hidden px-6 pb-5 text-gray-400 text-sm leading-relaxed" data-i18n="faq.2.a">
+            k8scan supports Helm chart packages (.tgz, .tar.gz), ZIP archives of Kubernetes YAML/JSON manifests, and live cluster scanning via kubectl. Static analysis works without a running cluster.
+          </div>
+        </div>
+        <div class="faq-item bg-cardBg rounded-xl border border-gray-800">
+          <button class="faq-q w-full flex justify-between items-center px-6 py-5 text-left font-semibold text-white" onclick="toggleFaq(this)">
+            <span data-i18n="faq.3.q">Can I integrate k8scan into my CI/CD pipeline?</span>
+            <i class="fa-solid fa-chevron-down text-primary text-sm transition-transform"></i>
+          </button>
+          <div class="faq-a hidden px-6 pb-5 text-gray-400 text-sm leading-relaxed" data-i18n="faq.3.a">
+            Yes. k8scan integrates natively with GitHub Actions and GitLab CI. Use --fail-on CRITICAL to fail builds on critical findings. SARIF output integrates with GitHub Advanced Security. Pro and Enterprise plans include a REST API for custom pipelines.
+          </div>
+        </div>
+        <div class="faq-item bg-cardBg rounded-xl border border-gray-800">
+          <button class="faq-q w-full flex justify-between items-center px-6 py-5 text-left font-semibold text-white" onclick="toggleFaq(this)">
+            <span data-i18n="faq.4.q">How is my payment information secured?</span>
+            <i class="fa-solid fa-chevron-down text-primary text-sm transition-transform"></i>
+          </button>
+          <div class="faq-a hidden px-6 pb-5 text-gray-400 text-sm leading-relaxed" data-i18n="faq.4.a">
+            All payments are processed by Stripe. k8scan never touches or stores your credit card number. Stripe is PCI DSS Level 1 certified.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="bg-[#050505] py-14 border-t border-gray-800">
+    <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div>
+        <a href="/" class="text-2xl font-bold text-white tracking-tight">k8<span class="text-primary">scan</span></a>
+        <p class="text-gray-500 text-sm mt-3 leading-relaxed">Kubernetes security scanner with Capability Break analysis and attack chain modeling.</p>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Product</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="#pricing"       class="hover:text-primary transition">Pricing</a></li>
+          <li><a href="#features"      class="hover:text-primary transition">Features</a></li>
+          <li><a href="#sample-report" class="hover:text-primary transition">Sample Report</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Legal</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="#" class="hover:text-primary transition">Privacy Policy</a></li>
+          <li><a href="#" class="hover:text-primary transition">Terms of Service</a></li>
+          <li><a href="#" class="hover:text-primary transition">Security</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Company</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="mailto:start@k8scan.com" class="hover:text-primary transition">Contact</a></li>
+          <li><a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="container mx-auto px-6 mt-10 pt-6 border-t border-gray-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+      <p>&copy; 2026 k8scan. All rights reserved.</p>
+      <p>Crafted by <a href="https://github.com/alperenkesk" class="text-primary hover:underline" rel="noopener noreferrer">alperenkesk</a></p>
     </div>
   </footer>
 
@@ -300,26 +641,251 @@
   </button>
 
   <script>
-    // Back to Top Logic
-    const backToTopBtn = document.getElementById('backToTop');
+    // ── i18n ──
+    const T = {
+      en: {
+        'nav.pricing':      'Pricing',
+        'nav.features':     'Features',
+        'nav.howitworks':   'How It Works',
+        'nav.samplereport': 'Sample Report',
+        'nav.getstarted':   'Get Started',
+        'hero.badge2':  'Helm & Manifest Support',
+        'hero.badge3':  'On-Prem Ready',
+        'hero.desc':    'Upload your Helm charts or Kubernetes manifests and k8scan scans for misconfigurations, exposed secrets, RBAC flaws, and container escape vectors&mdash;then correlates findings into <strong class="text-white">Capability Breaks</strong> and multi-stage attack paths with validation-grade PoC commands.',
+        'hero.cta1':    'Get Started',
+        'hero.cta2':    'View Pricing',
+        'hero.hint':    'Starting at $9/mo • Cancel anytime',
+        'pricing.title':    'Simple, Transparent Pricing',
+        'pricing.subtitle': 'Pay as you grow. No hidden fees. Cancel anytime.',
+        'pricing.monthly':  'Monthly',
+        'pricing.annual':   'Annual',
+        'pricing.popular':  'Most Popular',
+        'pricing.s.f1': '3 scans / month',
+        'pricing.s.f2': 'Charts up to 5 MB',
+        'pricing.s.f3': 'HTML report download',
+        'pricing.s.f6': 'Team access',
+        'pricing.s.cta':'Get Started',
+        'pricing.p.f1': '10 scans / month',
+        'pricing.p.f2': 'Charts up to 50 MB',
+        'pricing.p.f5': '5 team members',
+        'pricing.p.f6': 'Slack notifications',
+        'pricing.p.cta':'Start Pro',
+        'pricing.e.f1': 'Unlimited scans',
+        'pricing.e.f2': 'Unlimited chart size',
+        'pricing.e.f3': 'All report formats',
+        'pricing.e.f5': 'Unlimited team members',
+        'pricing.e.f7': 'SLA + Priority support',
+        'pricing.e.cta':'Contact Sales',
+        'features.title':    'Everything you need to secure Kubernetes',
+        'features.subtitle': '123+ checks across 8 categories—from misconfiguration detection to full attack chain modeling.',
+        'f1.title': 'Capability Break Engine',
+        'f1.desc':  'Correlates individual findings into structured proofs that a named security boundary—container isolation, RBAC, namespace isolation—is broken. Not a finding list. An attack model.',
+        'f2.title': 'Compound Attack Paths',
+        'f2.desc':  'When two or more Capability Breaks chain together, k8scan surfaces a Compound Break—a complete multi-stage attack path with MITRE ATT&CK mapping and blast radius.',
+        'f3.title': 'Validation-Grade PoC Commands',
+        'f3.desc':  'Every Capability Break includes read-only kubectl commands that confirm the misconfiguration exists without modifying cluster state.',
+        'f4.title': 'Helm & Manifest Static Analysis',
+        'f4.desc':  'Scan .tgz chart packages, ZIP archives of YAML dumps, or raw manifests—without a live cluster. Integrates with GitHub Actions, GitLab CI, and any CI pipeline.',
+        'f5.title': '123+ Checks, 8 Categories',
+        'f5.desc':  'Container security, RBAC, secrets, network policy, control plane, workload hygiene, image integrity, and runtime threats—all CIS Benchmark mapped.',
+        'f6.title': 'SaaS & On-Prem Deployment',
+        'f6.desc':  'Use the cloud platform or deploy entirely on your own infrastructure. On-prem mode keeps all data in-house—no telemetry, no external calls.',
+        'ss.title':    'See It In Action',
+        'ss.subtitle': 'Real output from k8scan running against a production Kubernetes cluster.',
+        'ss.1.title': 'HTML Report',
+        'ss.1.desc':  'Color-coded findings with severity, location, and remediation guidance.',
+        'ss.2.title': 'Capability Break Analysis',
+        'ss.2.desc':  'Structured proof that a named security boundary is broken, with weighted confidence scores.',
+        'ss.3.title': 'Interactive Attack Graph',
+        'ss.3.desc':  'Visual lateral movement path from initial access to final target.',
+        'ss.4.title': 'Proof-of-Concept Commands',
+        'ss.4.desc':  'Read-only kubectl commands that validate each finding without modifying cluster state.',
+        'hiw.title':    'How It Works',
+        'hiw.subtitle': 'From upload to attack chain report in seconds.',
+        'hiw.1.title': 'Upload Your Chart or Manifest',
+        'hiw.1.desc':  'Provide a Helm .tgz, a ZIP of YAML manifests, or point k8scan at a live cluster. Files are encrypted at rest.',
+        'hiw.2.title': 'Capability Break Analysis',
+        'hiw.2.desc':  '123+ checks across 8 categories run instantly. The engine then correlates findings into Capability Breaks and chains them into multi-stage attack paths.',
+        'hiw.3.title': 'Get Your Report',
+        'hiw.3.desc':  'Download HTML, JSON, SARIF, or Markdown reports. Every Capability Break includes a validated PoC command and attack graph.',
+        'report.title':    'See a Real Report',
+        'report.subtitle': 'This is what a k8scan report looks like for a real-world Helm chart deployment with vulnerabilities.',
+        'faq.title': 'Frequently Asked Questions',
+        'faq.1.q': 'Are my Helm charts stored permanently?',
+        'faq.1.a': 'No. Uploaded charts are stored encrypted at rest and automatically deleted after 24 hours. We never share or use your chart data for any purpose other than scanning.',
+        'faq.2.q': 'What file formats are supported?',
+        'faq.2.a': 'k8scan supports Helm chart packages (.tgz, .tar.gz), ZIP archives of Kubernetes YAML/JSON manifests, and live cluster scanning via kubectl. Static analysis works without a running cluster.',
+        'faq.3.q': 'Can I integrate k8scan into my CI/CD pipeline?',
+        'faq.3.a': 'Yes. k8scan integrates natively with GitHub Actions and GitLab CI. Use --fail-on CRITICAL to fail builds on critical findings. SARIF output integrates with GitHub Advanced Security. Pro and Enterprise plans include a REST API for custom pipelines.',
+        'faq.4.q': 'How is my payment information secured?',
+        'faq.4.a': 'All payments are processed by Stripe. k8scan never touches or stores your credit card number. Stripe is PCI DSS Level 1 certified.',
+        'onprem.badge': 'Enterprise / On-Prem',
+        'onprem.title': 'Your data never leaves your infrastructure.',
+        'onprem.desc':  'For organizations with strict data sovereignty requirements — government agencies, financial institutions, and critical infrastructure operators — k8scan deploys entirely within your own environment. No telemetry, no external API calls, no cloud dependency.',
+        'onprem.cta':   'Get in Touch',
+        'onprem.f1.title': 'Zero Data Egress',
+        'onprem.f1.desc':  'All scan data, findings, and reports stay inside your cluster. Nothing is sent to external servers.',
+        'onprem.f2.title': 'Helm-Based Deployment',
+        'onprem.f2.desc':  'Deploy as a Kubernetes Job or CronJob using the provided Helm chart. Runs in air-gapped environments.',
+        'onprem.f3.title': 'Compliance Ready',
+        'onprem.f3.desc':  'Meets data residency and sovereignty requirements. Suitable for public sector procurement processes.',
+        'onprem.f4.title': 'SLA-Backed Support',
+        'onprem.f4.desc':  'Dedicated installation support, documented deployment process, and ongoing SLA for enterprise customers.',
+      },
+      tr: {
+        'nav.pricing':      'Fiyatlar',
+        'nav.features':     'Özellikler',
+        'nav.howitworks':   'Nasıl Çalışır',
+        'nav.samplereport': 'Örnek Rapor',
+        'nav.getstarted':   'Başla',
+        'hero.badge2':  'Helm & Manifest Desteği',
+        'hero.badge3':  'On-Prem Hazır',
+        'hero.desc':    'Helm chart\'larınızı veya Kubernetes manifest\'lerinizi yükleyin; k8scan yanlış yapılandırmaları, açıkta kalan secrets\'ları, RBAC hatalarını ve container escape vektörlerini tarar&mdash;ardından bulguları <strong class="text-white">Capability Break</strong>\'lere ve çok aşamalı saldırı yollarına dönüştürür.',
+        'hero.cta1':    'Hemen Başla',
+        'hero.cta2':    'Fiyatları Gör',
+        'hero.hint':    'Aylık $9\'dan başlıyor • İstediğinizde iptal',
+        'pricing.title':    'Sade ve Şeffaf Fiyatlandırma',
+        'pricing.subtitle': 'Büyüdükçe öde. Gizli ücret yok. İstediğin zaman iptal.',
+        'pricing.monthly':  'Aylık',
+        'pricing.annual':   'Yıllık',
+        'pricing.popular':  'En Çok Tercih Edilen',
+        'pricing.s.f1': 'Ayda 3 tarama',
+        'pricing.s.f2': '5 MB\'a kadar chart',
+        'pricing.s.f3': 'HTML rapor indirme',
+        'pricing.s.f6': 'Takım erişimi',
+        'pricing.s.cta':'Başla',
+        'pricing.p.f1': 'Ayda 10 tarama',
+        'pricing.p.f2': '50 MB\'a kadar chart',
+        'pricing.p.f5': '5 takım üyesi',
+        'pricing.p.f6': 'Slack bildirimleri',
+        'pricing.p.cta':'Pro\'ya Geç',
+        'pricing.e.f1': 'Sınırsız tarama',
+        'pricing.e.f2': 'Sınırsız chart boyutu',
+        'pricing.e.f3': 'Tüm rapor formatları',
+        'pricing.e.f5': 'Sınırsız takım üyesi',
+        'pricing.e.f7': 'SLA + Öncelikli destek',
+        'pricing.e.cta':'Satış ile İletişim',
+        'features.title':    'Kubernetes\'i güvende tutmak için her şey',
+        'features.subtitle': '8 kategoride 123+ kontrol—yanlış yapılandırma tespitinden tam saldırı zinciri modellemesine.',
+        'f1.title': 'Capability Break Motoru',
+        'f1.desc':  'Bireysel bulguları adlandırılmış güvenlik sınırlarının kırıldığının yapısal kanıtına dönüştürür: container izolasyonu, RBAC, namespace izolasyonu. Bulgu listesi değil; saldırı modeli.',
+        'f2.title': 'Bileşik Saldırı Yolları',
+        'f2.desc':  'İki veya daha fazla Capability Break zincirlendiğinde k8scan bir Compound Break ortaya çıkarır—MITRE ATT&CK eşlemeli ve patlama yarıçaplı eksiksiz çok aşamalı saldırı yolu.',
+        'f3.title': 'Doğrulama Düzeyinde PoC Komutları',
+        'f3.desc':  'Her Capability Break, cluster durumunu değiştirmeden yanlış yapılandırmanın varlığını doğrulayan salt okunur kubectl komutları içerir.',
+        'f4.title': 'Helm & Manifest Statik Analiz',
+        'f4.desc':  '.tgz chart paketlerini, YAML dump\'larının ZIP arşivlerini veya ham manifest\'leri canlı cluster\'a gerek kalmadan tarayın. GitHub Actions, GitLab CI ve tüm CI pipeline\'larıyla entegre çalışır.',
+        'f5.title': '123+ Kontrol, 8 Kategori',
+        'f5.desc':  'Container güvenliği, RBAC, secrets, network policy, control plane, workload hijyeni, image bütünlüğü ve runtime tehditler—tümü CIS Benchmark eşlemeli.',
+        'f6.title': 'SaaS & On-Prem Kurulum',
+        'f6.desc':  'Bulut platformunu kullanın ya da tamamen kendi altyapınıza deploy edin. On-prem mod tüm veriyi şirket içinde tutar—telemetri yok, dışarıya bağlantı yok.',
+        'ss.title':    'Çalışırken Görün',
+        'ss.subtitle': 'Gerçek bir üretim Kubernetes cluster\'ına karşı k8scan çıktısı.',
+        'ss.1.title': 'HTML Rapor',
+        'ss.1.desc':  'Önem derecesi, konum ve düzeltme rehberiyle renk kodlu bulgular.',
+        'ss.2.title': 'Capability Break Analizi',
+        'ss.2.desc':  'Adlandırılmış güvenlik sınırının kırıldığının ağırlıklı güven skorlu yapısal kanıtı.',
+        'ss.3.title': 'İnteraktif Saldırı Grafiği',
+        'ss.3.desc':  'İlk erişimden son hedefe lateral hareket yolunun görsel temsili.',
+        'ss.4.title': 'Proof-of-Concept Komutları',
+        'ss.4.desc':  'Cluster durumunu değiştirmeden her bulguyu doğrulayan salt okunur kubectl komutları.',
+        'hiw.title':    'Nasıl Çalışır',
+        'hiw.subtitle': 'Yüklemeden saldırı zinciri raporuna saniyeler içinde.',
+        'hiw.1.title': 'Chart veya Manifest Yükleyin',
+        'hiw.1.desc':  'Helm .tgz, YAML manifest\'lerin ZIP arşivi veya canlı cluster bağlantısı. Dosyalar şifreli olarak saklanır.',
+        'hiw.2.title': 'Capability Break Analizi',
+        'hiw.2.desc':  '8 kategoride 123+ kontrol anında çalışır. Motor ardından bulguları Capability Break\'lere dönüştürür ve çok aşamalı saldırı yollarına zincirler.',
+        'hiw.3.title': 'Raporunuzu Alın',
+        'hiw.3.desc':  'HTML, JSON, SARIF veya Markdown rapor indirin. Her Capability Break doğrulanmış PoC komutu ve saldırı grafiği içerir.',
+        'report.title':    'Gerçek Bir Raporu İncele',
+        'report.subtitle': 'Açıkları olan gerçek dünya Helm chart\'larında k8scan raporunun görünümü.',
+        'faq.title': 'Sıkça Sorulan Sorular',
+        'faq.1.q': 'Helm chart\'larım kalıcı olarak saklanıyor mu?',
+        'faq.1.a': 'Hayır. Yüklenen chart\'lar şifreli olarak saklanır ve 24 saat sonra otomatik silinir. Chart verilerinizi yalnızca tarama amacıyla kullanırız, asla paylaşmayız.',
+        'faq.2.q': 'Hangi dosya formatları destekleniyor?',
+        'faq.2.a': 'k8scan; Helm chart paketlerini (.tgz, .tar.gz), Kubernetes YAML/JSON manifest\'lerinin ZIP arşivlerini ve kubectl aracılığıyla canlı cluster taramasını destekler. Statik analiz çalışan bir cluster gerektirmez.',
+        'faq.3.q': 'k8scan\'i CI/CD pipeline\'ıma entegre edebilir miyim?',
+        'faq.3.a': 'Evet. k8scan; GitHub Actions ve GitLab CI ile doğrudan entegre çalışır. Kritik bulgularda build\'i durdurmak için --fail-on CRITICAL bayrağını kullanın. SARIF çıktısı GitHub Advanced Security ile entegre olur. Pro ve Enterprise planları özel pipeline\'lar için REST API içerir.',
+        'faq.4.q': 'Ödeme bilgilerim nasıl güvende tutuluyor?',
+        'faq.4.a': 'Tüm ödemeler Stripe tarafından işlenir. k8scan kredi kartı numaranıza hiçbir zaman erişmez veya saklamaz. Stripe PCI DSS Seviye 1 sertifikalıdır.',
+        'onprem.badge': 'Kurumsal / On-Prem',
+        'onprem.title': 'Veriniz altyapınızın dışına çıkmaz.',
+        'onprem.desc':  'Veri egemenliği gereksinimleri katı olan kurumlar için — bakanlıklar, finans kuruluşları ve kritik altyapı işleticileri — k8scan tamamen kendi ortamınıza deploy edilir. Telemetri yok, dışarıya API çağrısı yok, bulut bağımlılığı yok.',
+        'onprem.cta':   'İletişime Geçin',
+        'onprem.f1.title': 'Sıfır Veri Çıkışı',
+        'onprem.f1.desc':  'Tüm tarama verileri, bulgular ve raporlar cluster\'ınızın içinde kalır. Dışarıya hiçbir şey gönderilmez.',
+        'onprem.f2.title': 'Helm Tabanlı Kurulum',
+        'onprem.f2.desc':  'Sağlanan Helm chart\'ı ile Kubernetes Job veya CronJob olarak deploy edin. Air-gapped ortamlarda çalışır.',
+        'onprem.f3.title': 'Uyumluluk Hazır',
+        'onprem.f3.desc':  'Veri yerelleştirme ve egemenlik gereksinimlerini karşılar. Kamu ihale süreçlerine uygundur.',
+        'onprem.f4.title': 'SLA Destekli Destek',
+        'onprem.f4.desc':  'Kurumsal müşteriler için adanmış kurulum desteği, belgelenmiş deployment süreci ve süregelen SLA.',
+      },
+    };
 
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 300) {
-        backToTopBtn.classList.remove('opacity-0', 'invisible');
-        backToTopBtn.classList.add('opacity-100', 'visible');
-      } else {
-        backToTopBtn.classList.add('opacity-0', 'invisible');
-        backToTopBtn.classList.remove('opacity-100', 'visible');
-      }
-    });
-
-    backToTopBtn.addEventListener('click', () => {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
+    function setLang(lang) {
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const v = T[lang][el.dataset.i18n];
+        if (v !== undefined) el.textContent = v;
       });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const v = T[lang][el.dataset.i18nHtml];
+        if (v !== undefined) el.innerHTML = v;
+      });
+      const active   = 'px-3 py-1.5 rounded bg-primary text-black transition';
+      const inactive = 'px-3 py-1.5 rounded text-gray-400 transition hover:text-white';
+      document.getElementById('lang-en').className = lang === 'en' ? active : inactive;
+      document.getElementById('lang-tr').className = lang === 'tr' ? active : inactive;
+      localStorage.setItem('k8scan-lang', lang);
+    }
+    // Auto-detect on load
+    (function() {
+      const saved = localStorage.getItem('k8scan-lang');
+      const detected = navigator.language && navigator.language.startsWith('tr') ? 'tr' : 'en';
+      setLang(saved || detected);
+    })();
+
+    // Back to top
+    const btn = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      btn.classList.toggle('opacity-0',   window.scrollY <= 300);
+      btn.classList.toggle('invisible',   window.scrollY <= 300);
+      btn.classList.toggle('opacity-100', window.scrollY > 300);
+      btn.classList.toggle('visible',     window.scrollY > 300);
+    });
+    btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+
+    // FAQ accordion
+    function toggleFaq(btn) {
+      const ans  = btn.nextElementSibling;
+      const icon = btn.querySelector('i');
+      ans.classList.toggle('hidden');
+      icon.style.transform = ans.classList.contains('hidden') ? '' : 'rotate(180deg)';
+    }
+
+    // Terminal animation
+    const lines = [
+      { cls: 'text-gray-400',             txt: '<span class="text-primary">&#10145;</span> k8scan scan --output-html=report.html' },
+      { cls: 'text-gray-500',             txt: '[*] Connecting to cluster &bull; context: prod-cluster' },
+      { cls: 'text-gray-500',             txt: '[*] Running 123 checks across 8 categories...' },
+      { cls: 'text-red-400 font-bold',    txt: '[!] CRITICAL &mdash; CB-001: Container Isolation Broken (privileged + hostPID)' },
+      { cls: 'text-red-400 font-bold',    txt: '[!] CRITICAL &mdash; CB-004: RBAC Boundary Broken (wildcard ClusterRole)' },
+      { cls: 'text-orange-400 font-bold', txt: '[!] HIGH &mdash; Hardcoded AWS key in ConfigMap/app-config' },
+      { cls: 'text-orange-400 font-bold', txt: '[!] HIGH &mdash; Anonymous API server access enabled' },
+      { cls: 'text-primary font-bold',    txt: '[+] Compound Break: Container Escape &rarr; Cluster Admin (confidence: HIGH)' },
+      { cls: 'text-primary',              txt: '[+] PoC: kubectl exec -it deploy/app -- nsenter -t 1 -m -u -n -i sh' },
+      { cls: 'text-gray-400',             txt: '[*] 11 findings | 2 Capability Breaks | 1 Compound Break | report.html written' },
+    ];
+    const term = document.getElementById('terminal');
+    lines.forEach((l, i) => {
+      const p = document.createElement('p');
+      p.className = l.cls + ' terminal-line';
+      p.innerHTML = l.txt;
+      p.style.animationDelay = (i * 0.35) + 's';
+      term.appendChild(p);
     });
   </script>
 </body>
-
 </html>
