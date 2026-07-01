@@ -842,7 +842,8 @@
     // Auto-detect on load
     (function() {
       const saved = localStorage.getItem('k8scan-lang');
-      setLang(saved || 'en');
+      const detected = navigator.language && navigator.language.startsWith('tr') ? 'tr' : 'en';
+      setLang(saved || detected);
     })();
 
     // Back to top
