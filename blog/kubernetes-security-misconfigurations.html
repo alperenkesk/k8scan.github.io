@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top 10 Kubernetes Security Misconfigurations & How to Fix Them | k8scan</title>
+  <meta name="title" content="Top 10 Kubernetes Security Misconfigurations & How to Fix Them | k8scan">
+  <meta name="description" content="Learn about the most common Kubernetes security misconfigurations: privileged containers, RBAC wildcards, exposed secrets, missing NetworkPolicies, and how k8scan helps detect and fix them automatically.">
+  <meta name="keywords" content="kubernetes security misconfigurations, common kubernetes vulnerabilities, k8s security best practices, kubernetes misconfiguration detection, kubernetes security checklist, kubernetes container escape, rbac misconfiguration kubernetes">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://k8scan.com/blog/kubernetes-security-misconfigurations.html">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://k8scan.com/blog/kubernetes-security-misconfigurations.html">
+  <meta property="og:title" content="Top 10 Kubernetes Security Misconfigurations & How to Fix Them">
+  <meta property="og:description" content="Learn about the most common Kubernetes security misconfigurations: privileged containers, RBAC wildcards, exposed secrets, missing NetworkPolicies, and how k8scan helps detect them.">
+  <meta property="og:image" content="https://k8scan.com/k8scan-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Top 10 Kubernetes Security Misconfigurations & How to Fix Them">
+  <meta name="twitter:description" content="Learn about the most common Kubernetes security misconfigurations and how k8scan detects them.">
+  <meta name="twitter:image" content="https://k8scan.com/k8scan-logo.png">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 img-src    'self' data: https:;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <link rel="icon" type="image/png" href="/k8scan-logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { darkBg:'#09090b', cardBg:'#18181b', primary:'#10b981' } } }
+    }
+  </script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width:8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background:#09090b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:#3f3f46; border-radius:4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#10b981; }
+    .glow { box-shadow: 0 0 30px rgba(16,185,129,0.25); }
+    .misconfig-card { transition: border-color 0.2s; }
+    .misconfig-card:hover { border-color: rgba(16,185,129,0.4); }
+    .blog-content h2 { color: #fff; font-size: 1.5rem; font-weight: 800; margin-top: 2.5rem; margin-bottom: 1rem; }
+    .blog-content h3 { color: #10b981; font-size: 1.15rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+    .blog-content p { color: #9ca3af; line-height: 1.8; margin-bottom: 1.25rem; }
+    .blog-content ul, .blog-content ol { color: #9ca3af; line-height: 1.8; margin-bottom: 1.25rem; padding-left: 1.5rem; }
+    .blog-content li { margin-bottom: 0.5rem; }
+    .blog-content strong { color: #fff; }
+    .blog-content code { color: #10b981; background: #18181b; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; }
+  </style>
+</head>
+<body class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar">
+
+  <header class="fixed w-full top-0 bg-darkBg/90 backdrop-blur-md z-50 border-b border-gray-800">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="text-2xl font-bold text-white tracking-tight">k8<span class="text-primary">scan</span></a>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <a href="/kubernetes-security-scanner.html" class="hover:text-primary transition">Security Scanner</a>
+        <a href="/kubernetes-security-tool.html" class="hover:text-primary transition">Security Tool</a>
+        <a href="/#pricing" class="hover:text-primary transition">Pricing</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer"
+           class="text-sm font-medium text-gray-300 hover:text-primary transition px-4 py-2 flex items-center gap-1.5">
+          <i class="fa-brands fa-github"></i> GitHub
+        </a>
+        <a href="/app/register.html"
+           class="bg-primary text-black text-sm font-bold px-5 py-2 rounded-md hover:bg-emerald-400 transition glow">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-28 pb-20 container mx-auto px-6 max-w-3xl">
+
+    <div class="mb-10">
+      <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold mb-4">
+        <i class="fa-solid fa-pen"></i> Blog
+      </span>
+      <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-4">
+        Top 10 Kubernetes Security Misconfigurations &amp; How to Fix Them
+      </h1>
+      <div class="flex items-center gap-3 text-xs text-gray-500">
+        <span>July 3, 2026</span>
+        <span>&middot;</span>
+        <span>8 min read</span>
+      </div>
+    </div>
+
+    <p class="text-gray-400 text-base leading-relaxed mb-8">
+      Kubernetes security is hard. With hundreds of configuration options across
+      pods, RBAC, network policies, and secrets, it's easy to accidentally leave
+      a door open. In this post, we cover the <strong>10 most common Kubernetes
+      misconfigurations</strong>, why they matter, and how to detect them automatically
+      using <a href="/" class="text-primary hover:underline">k8scan</a>, a free
+      Kubernetes security scanner.
+    </p>
+
+    <div class="blog-content">
+
+      <h2>1. Privileged Containers</h2>
+      <p>
+        The most dangerous misconfiguration: a container with <code>privileged: true</code>
+        has unrestricted access to the host kernel. An attacker who gains code execution
+        inside a privileged container can escape to the host node trivially using
+        <code>nsenter</code> or by mounting the host filesystem.
+      </p>
+      <div class="bg-[#0c0c0e] border border-gray-800 rounded-lg p-4 mb-6 font-mono text-xs">
+        <p class="text-gray-500 mb-2">Remediation:</p>
+        <pre class="text-gray-300">securityContext:
+  privileged: false
+  capabilities:
+    drop: ["ALL"]
+    add: ["NET_BIND_SERVICE"]  # only what's needed</pre>
+      </div>
+      <p>
+        k8scan detects this as <strong class="text-red-400">K8S-001 (CRITICAL)</strong> and generates a PoC
+        command showing the exact container escape path. It also correlates this finding in the
+        <strong>Container Isolation Capability Break</strong> (CB-001).
+      </p>
+
+      <h2>2. Wildcard RBAC Permissions</h2>
+      <p>
+        ClusterRoles or Roles using <code>verbs: ["*"]</code> and <code>resources: ["*"]</code>
+        grant unrestricted access to all resources. This is the RBAC equivalent of
+        giving root to every service account. Attackers who compromise a pod with such
+        permissions can exfiltrate secrets, create backdoor admin users, and deploy
+        malicious workloads.
+      </p>
+      <p>
+        k8scan flags these as <strong class="text-red-400">K8S-020 (CRITICAL)</strong> and includes them
+        in the <strong>RBAC Boundary Break</strong> analysis. The recommended fix is to replace
+        wildcards with explicit resource and verb lists following least-privilege principles.
+      </p>
+
+      <h2>3. Secrets in Environment Variables</h2>
+      <p>
+        Hardcoding AWS access keys, GitHub tokens, or database passwords in environment
+        variables is alarmingly common. These credentials are visible to anyone with
+        <code>kubectl describe pod</code> access and can leak through logs, debugging
+        endpoints, or compromised containers.
+      </p>
+      <p>
+        k8scan's secrets scanner detects <strong class="text-orange-400">30+ credential patterns</strong>
+        (AWS keys, GitHub tokens, Google API keys, private keys, generic passwords) in
+        both plain text and base64-encoded values. Use Kubernetes Secrets or an external
+        secrets manager instead.
+      </p>
+
+      <h2>4. Missing Network Policies</h2>
+      <p>
+        By default, Kubernetes allows all pod-to-pod communication across the entire
+        cluster. Without NetworkPolicy resources, an attacker who compromises one pod
+        can reach every other pod, including control plane components and databases.
+      </p>
+      <p>
+        k8scan reports this as <strong class="text-orange-400">K8S-050 (HIGH)</strong> and recommends
+        enforcing least-privilege network segmentation per namespace. A deny-all default
+        policy followed by selective allow rules is the recommended approach.
+      </p>
+
+      <h2>5. Dangerous Linux Capabilities</h2>
+      <p>
+        Capabilities like <code>SYS_ADMIN</code>, <code>BPF</code>, <code>NET_RAW</code>,
+        and <code>SYS_PTRACE</code> grant low-level kernel access that can be abused
+        for container escape. <code>SYS_ADMIN</code> in particular is effectively
+        equivalent to running as privileged.
+      </p>
+      <p>
+        k8scan identifies dangerous capabilities as <strong class="text-red-400">K8S-005</strong>
+        (CRITICAL for <code>SYS_ADMIN</code>/<code>ALL</code>, HIGH for others). The fix:
+        drop all capabilities and add back only what each container explicitly needs.
+      </p>
+
+      <h2>6. Host Namespace Sharing (hostPID / hostIPC / hostNetwork)</h2>
+      <p>
+        Pods that share the host's PID, IPC, or network namespaces break container
+        isolation. <code>hostPID: true</code> allows a container to see all host
+        processes, making credential theft and process injection trivial.
+      </p>
+      <p>
+        k8scan flags these with <strong class="text-red-400">K8S-011 through K8S-013</strong>.
+        These findings feed directly into the <strong>Container Isolation Break</strong>
+        capability boundary check.
+      </p>
+
+      <h2>7. Docker / Containerd Socket Mounts</h2>
+      <p>
+        Mounting <code>/var/run/docker.sock</code> or <code>/run/containerd/containerd.sock</code>
+        into a pod gives the container direct access to the container runtime. From there,
+        an attacker can create new privileged containers, access all images, and take over
+        the host node.
+      </p>
+      <p>
+        k8scan's <strong class="text-red-400">K8S-014 (CRITICAL)</strong> check detects dangerous
+        hostPath mounts including socket files, <code>/etc</code>, <code>/proc</code>,
+        and <code>/sys</code>.
+      </p>
+
+      <h2>8. Anonymous API Server Access</h2>
+      <p>
+        If the API server has <code>--anonymous-auth</code> not explicitly set to
+        <code>false</code>, unauthenticated requests are accepted. Combined with
+        RBAC bindings to <code>system:anonymous</code>, this can give anyone on the
+        network full cluster access without credentials.
+      </p>
+      <p>
+        k8scan checks for this as a control plane vulnerability and links it to
+        the <strong>Cluster Access Boundary Break</strong> chain.
+      </p>
+
+      <h2>9. Using <code>:latest</code> Image Tags</h2>
+      <p>
+        Containers using <code>:latest</code> or no image tag receive unpredictable
+        updates that can introduce breaking changes or new vulnerabilities. In a
+        production security context, you can't verify what version is actually running.
+      </p>
+      <p>
+        k8scan detects this as <strong class="text-yellow-400">K8S-008 (MEDIUM)</strong>. Pin images
+        to specific tags or SHA256 digests for reproducible and auditable deployments.
+      </p>
+
+      <h2>10. Missing Resource Limits</h2>
+      <p>
+        Containers without CPU and memory limits can cause denial-of-service by
+        exhausting node resources. While not a direct security vulnerability, this
+        is a <strong>workload hygiene</strong> issue that k8scan tracks in
+        <strong class="text-yellow-400">K8S-006 (MEDIUM)</strong>.
+      </p>
+      <p>
+        Configure <code>resources.limits.cpu</code> and <code>resources.limits.memory</code>
+        on every container, and set appropriate <code>requests</code> for scheduling.
+      </p>
+
+      <h2>How k8scan Automates Misconfiguration Detection</h2>
+      <p>
+        <a href="/" class="text-primary hover:underline">k8scan</a> is a free, read-only
+        <a href="/kubernetes-security-scanner.html" class="text-primary hover:underline">Kubernetes security scanner</a>
+        purpose-built to detect these misconfigurations automatically. It runs 123+ checks
+        across 8 categories, then correlates individual findings into
+        <strong>Capability Breaks</strong> and <strong>multi-stage attack paths</strong>.
+      </p>
+      <p>
+        What sets k8scan apart from other tools is its <strong>attack path modeling</strong>.
+        It doesn't just give you a list of findings — it tells you which combinations
+        of misconfigurations create an exploitable attack chain, complete with
+        Proof-of-Concept commands, MITRE ATT&CK mapping, and interactive attack graphs.
+      </p>
+      <p>
+        k8scan works as a single static binary (no runtime dependencies), supports
+        5 output formats, and integrates with GitHub Actions and GitLab CI. It's
+        <strong>completely read-only</strong> — safe for production clusters.
+      </p>
+
+    </div>
+
+    <div class="mt-12 text-center bg-cardBg border border-gray-800 rounded-xl p-10">
+      <h2 class="text-2xl font-extrabold text-white mb-3">Scan Your Cluster for These Misconfigurations</h2>
+      <p class="text-gray-400 mb-6 max-w-lg mx-auto">Upload your Helm chart or use the CLI to detect all 10 misconfigurations and more — in seconds. Free to start.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/app/register.html" class="bg-primary text-black font-bold py-3 px-8 rounded-md hover:bg-emerald-400 transition glow flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rocket"></i> Get Started Free
+        </a>
+        <a href="/" class="bg-cardBg border border-gray-700 text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrow-left"></i> Back to k8scan
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="bg-[#050505] py-14 border-t border-gray-800">
+    <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div>
+        <a href="/" class="text-2xl font-bold text-white tracking-tight">k8<span class="text-primary">scan</span></a>
+        <p class="text-gray-500 text-sm mt-3 leading-relaxed">Kubernetes security scanner with Capability Break analysis and attack chain modeling.</p>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Product</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="/kubernetes-security-scanner.html" class="hover:text-primary transition">Kubernetes Security Scanner</a></li>
+          <li><a href="/kubernetes-security-tool.html" class="hover:text-primary transition">Kubernetes Security Tool</a></li>
+          <li><a href="/#pricing" class="hover:text-primary transition">Pricing</a></li>
+          <li><a href="/#features" class="hover:text-primary transition">Features</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Resources</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="/sample-report.html" class="hover:text-primary transition">Sample Report</a></li>
+          <li><a href="/blog/kubernetes-security-misconfigurations.html" class="hover:text-primary transition">K8s Security Misconfigurations</a></li>
+          <li><a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition">GitHub</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Company</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="mailto:start@k8scan.com" class="hover:text-primary transition">Contact</a></li>
+          <li><a href="#" class="hover:text-primary transition">Privacy Policy</a></li>
+          <li><a href="#" class="hover:text-primary transition">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="container mx-auto px-6 mt-10 pt-6 border-t border-gray-900 text-center text-xs text-gray-600">
+      <p>&copy; 2026 k8scan. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

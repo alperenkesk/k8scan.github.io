@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>k8scan: Kubernetes Security Scanner - 123+ Checks, CI/CD Ready, Free</title>
+  <meta name="title" content="k8scan: Kubernetes Security Scanner - 123+ Checks, CI/CD Ready, Free">
+  <meta name="description" content="k8scan is a powerful Kubernetes security scanner that detects misconfigurations, RBAC flaws, secrets exposure, and container escape vectors. 123+ security checks, CI/CD native, CIS Benchmark mapped. Free & open source.">
+  <meta name="keywords" content="kubernetes security scanner, k8s security scanner, kubernetes cluster scanner, kubernetes vulnerability scanner, kubernetes misconfiguration detection, k8s audit tool, container security scanner">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://k8scan.com/kubernetes-security-scanner.html">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://k8scan.com/kubernetes-security-scanner.html">
+  <meta property="og:title" content="k8scan: Kubernetes Security Scanner - 123+ Checks, CI/CD Ready, Free">
+  <meta property="og:description" content="Detect misconfigurations, RBAC flaws, secrets exposure, and container escape vectors. 123+ security checks, CI/CD native, CIS Benchmark mapped.">
+  <meta property="og:image" content="https://k8scan.com/k8scan-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="k8scan: Kubernetes Security Scanner - 123+ Checks, CI/CD Ready, Free">
+  <meta name="twitter:description" content="Detect misconfigurations, RBAC flaws, secrets exposure, and container escape vectors. 123+ checks.">
+  <meta name="twitter:image" content="https://k8scan.com/k8scan-logo.png">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
+                 script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
+                 style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+                 img-src    'self' data: https:;
+                 font-src   https://cdnjs.cloudflare.com;">
+  <link rel="icon" type="image/png" href="/k8scan-logo.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { darkBg:'#09090b', cardBg:'#18181b', primary:'#10b981' } } }
+    }
+  </script>
+  <style>
+    .custom-scrollbar::-webkit-scrollbar { width:8px; height:8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background:#09090b; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:#3f3f46; border-radius:4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#10b981; }
+    .glow { box-shadow: 0 0 30px rgba(16,185,129,0.25); }
+    .feature-card { transition: border-color 0.2s; }
+    .feature-card:hover { border-color: rgba(16,185,129,0.5); }
+  </style>
+</head>
+<body class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar">
+
+  <header class="fixed w-full top-0 bg-darkBg/90 backdrop-blur-md z-50 border-b border-gray-800">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="text-2xl font-bold text-white tracking-tight">k8<span class="text-primary">scan</span></a>
+      <nav class="hidden md:flex space-x-8 text-sm font-medium">
+        <a href="/" class="hover:text-primary transition">Home</a>
+        <a href="/kubernetes-security-tool.html" class="hover:text-primary transition">Security Tool</a>
+        <a href="/#features" class="hover:text-primary transition">Features</a>
+        <a href="/#pricing" class="hover:text-primary transition">Pricing</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer"
+           class="text-sm font-medium text-gray-300 hover:text-primary transition px-4 py-2 flex items-center gap-1.5">
+          <i class="fa-brands fa-github"></i> GitHub
+        </a>
+        <a href="/app/register.html"
+           class="bg-primary text-black text-sm font-bold px-5 py-2 rounded-md hover:bg-emerald-400 transition glow"
+           data-i18n="nav.getstarted">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-28 pb-20 container mx-auto px-6 max-w-4xl">
+
+    <h1 class="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-6 text-center">
+      Kubernetes Security Scanner
+    </h1>
+    <p class="text-lg text-gray-400 text-center max-w-3xl mx-auto mb-16 leading-relaxed">
+      k8scan is a <strong class="text-white">read-only Kubernetes security scanner</strong> purpose-built for
+      platform engineers, security teams, and DevOps practitioners who need to detect
+      misconfigurations, privilege escalation paths, exposed secrets, and container
+      escape vectors across their clusters.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+      <div class="bg-cardBg border border-gray-800 rounded-xl p-6 text-center feature-card">
+        <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-shield-halved text-xl text-primary"></i>
+        </div>
+        <p class="text-3xl font-extrabold text-white">123+</p>
+        <p class="text-gray-400 text-sm">Security Checks</p>
+      </div>
+      <div class="bg-cardBg border border-gray-800 rounded-xl p-6 text-center feature-card">
+        <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-list-check text-xl text-primary"></i>
+        </div>
+        <p class="text-3xl font-extrabold text-white">8</p>
+        <p class="text-gray-400 text-sm">Scan Categories</p>
+      </div>
+      <div class="bg-cardBg border border-gray-800 rounded-xl p-6 text-center feature-card">
+        <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <i class="fa-solid fa-gauge-high text-xl text-primary"></i>
+        </div>
+        <p class="text-3xl font-extrabold text-white">&lt;5s</p>
+        <p class="text-gray-400 text-sm">Scan Time</p>
+      </div>
+    </div>
+
+    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">What Does a Kubernetes Security Scanner Do?</h2>
+
+    <p class="text-gray-400 leading-relaxed mb-6">
+      A <strong>Kubernetes security scanner</strong> analyzes your cluster's configuration — RBAC policies,
+      pod security contexts, network policies, secrets management, and control plane settings —
+      to identify weaknesses that attackers could exploit. Unlike traditional vulnerability scanners
+      that look at CVEs, a <strong>K8s security scanner</strong> focuses on <em>misconfigurations</em>: the
+      human errors and overly permissive defaults that lead to the majority of Kubernetes breaches.
+    </p>
+
+    <p class="text-gray-400 leading-relaxed mb-10">
+      k8scan goes further than simple checklists. It implements <strong class="text-white">Capability Break analysis</strong>,
+      which correlates individual findings into structured proofs that a named security boundary
+      (container isolation, RBAC isolation, namespace isolation) is broken. When two or more
+      Capability Breaks chain together, k8scan surfaces a <strong class="text-white">Compound Break</strong> —
+      a complete multi-stage attack path with MITRE ATT&CK mapping and blast radius calculation.
+    </p>
+
+    <div class="bg-[#0c0c0e] border border-gray-800 rounded-xl p-8 mb-16">
+      <h3 class="text-xl font-bold text-white mb-4">8 Security Categories Scanned</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-box text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">Container Security</p><p class="text-gray-500 text-xs">Privileged containers, capabilities, hostPath</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-key text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">RBAC</p><p class="text-gray-500 text-xs">Wildcards, pod/exec, cluster-admin bindings</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-lock text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">Secrets</p><p class="text-gray-500 text-xs">Hardcoded credentials, env var leaks</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-network-wired text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">Network</p><p class="text-gray-500 text-xs">Missing NetworkPolicies, exposed NodePorts</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-server text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">Control Plane</p><p class="text-gray-500 text-xs">Anonymous access, kubelet port, etcd audit</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-chart-simple text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">Workload</p><p class="text-gray-500 text-xs">PDB, resource limits, HPA, update strategy</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-image text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">Image</p><p class="text-gray-500 text-xs">Latest tags, untrusted registries</p></div>
+        </div>
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-bug text-primary mt-1"></i>
+          <div><p class="text-white font-semibold text-sm">Runtime Threats</p><p class="text-gray-500 text-xs">Crypto miners, Docker-in-Docker, SSH servers</p></div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">Why k8scan Stands Out</h2>
+
+    <div class="space-y-6 mb-16">
+      <div class="bg-cardBg border border-gray-800 rounded-xl p-6 feature-card">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+            <i class="fa-solid fa-brain text-lg text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-white font-bold mb-1">Capability Break Engine</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">Correlates individual findings into structured proofs of broken security boundaries. Not a finding list — an attack model. Each break includes weighted confidence, blast radius, and validation-grade PoC commands.</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-cardBg border border-gray-800 rounded-xl p-6 feature-card">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+            <i class="fa-solid fa-sitemap text-lg text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-white font-bold mb-1">Compound Attack Path Detection</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">Automatically chains Capability Breaks into multi-stage attack paths. For example: Container Escape + RBAC Wildcard + Secret Exposure = full cluster compromise. Each compound break includes MITRE ATT&CK mapping and interactive attack graphs.</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-cardBg border border-gray-800 rounded-xl p-6 feature-card">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+            <i class="fa-solid fa-file-code text-lg text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-white font-bold mb-1">CI/CD Native & Static Analysis</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">Scan Helm charts and Kubernetes manifests in your CI pipeline using <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">k8scan lint</code>. Output to SARIF for GitHub Advanced Security integration. Fail builds on critical findings with <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">--fail-on CRITICAL</code>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-cardBg border border-gray-800 rounded-xl p-6 feature-card">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
+            <i class="fa-solid fa-shield text-lg text-primary"></i>
+          </div>
+          <div>
+            <h3 class="text-white font-bold mb-1">Truly Read-Only</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">k8scan only uses <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">get</code>, <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">list</code>, and <code class="text-primary text-xs bg-gray-900 px-1 py-0.5 rounded">watch</code> API calls. It never creates, modifies, or deletes any resource. Safe for production clusters.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">How to Scan Your Kubernetes Cluster</h2>
+
+    <div class="bg-[#0c0c0e] border border-gray-800 rounded-xl p-6 font-mono text-sm mb-6">
+      <div class="flex items-center gap-2 mb-4 text-gray-500">
+        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+        <span class="ml-2 text-xs">Quick start</span>
+      </div>
+      <pre class="text-gray-300 leading-relaxed"><span class="text-primary">$</span> git clone https://github.com/alperenkesk/k8scan.git
+<span class="text-primary">$</span> cd k8scan && make build
+<span class="text-primary">$</span> ./bin/k8scan scan
+
+<span class="text-gray-500"># Or with Docker:</span>
+<span class="text-primary">$</span> docker run -v ~/.kube:/root/.kube:ro ghcr.io/alperenkesk/k8scan:latest scan
+
+<span class="text-gray-500"># Static analysis without a cluster:</span>
+<span class="text-primary">$</span> k8scan lint ./charts/myapp/ --helm ./charts/myapp/</pre>
+    </div>
+
+    <p class="text-gray-400 text-sm leading-relaxed mb-16">
+      Generate reports in 5 formats: terminal, JSON, HTML (dark theme), SARIF 2.1.0 (GitHub
+      Advanced Security), and Markdown. Every HTML report includes an interactive attack graph
+      visualization showing lateral movement paths from initial access to cluster compromise.
+    </p>
+
+    <div class="text-center bg-cardBg border border-gray-800 rounded-xl p-10">
+      <h2 class="text-2xl font-extrabold text-white mb-3">Start Scanning for Free</h2>
+      <p class="text-gray-400 mb-6 max-w-lg mx-auto">No credit card required. Upload your Helm chart and get a detailed security report with Capability Break analysis in seconds.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/app/register.html" class="bg-primary text-black font-bold py-3 px-8 rounded-md hover:bg-emerald-400 transition glow flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rocket"></i> Get Started Free
+        </a>
+        <a href="/" class="bg-cardBg border border-gray-700 text-white font-bold py-3 px-8 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-arrow-left"></i> Back to k8scan
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="bg-[#050505] py-14 border-t border-gray-800">
+    <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div>
+        <a href="/" class="text-2xl font-bold text-white tracking-tight">k8<span class="text-primary">scan</span></a>
+        <p class="text-gray-500 text-sm mt-3 leading-relaxed">Kubernetes security scanner with Capability Break analysis and attack chain modeling.</p>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Product</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="/kubernetes-security-scanner.html" class="hover:text-primary transition">Kubernetes Security Scanner</a></li>
+          <li><a href="/kubernetes-security-tool.html" class="hover:text-primary transition">Kubernetes Security Tool</a></li>
+          <li><a href="/#pricing" class="hover:text-primary transition">Pricing</a></li>
+          <li><a href="/#features" class="hover:text-primary transition">Features</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Resources</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="/sample-report.html" class="hover:text-primary transition">Sample Report</a></li>
+          <li><a href="/blog/kubernetes-security-misconfigurations.html" class="hover:text-primary transition">K8s Security Misconfigurations</a></li>
+          <li><a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition">GitHub</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Company</p>
+        <ul class="space-y-2 text-sm text-gray-400">
+          <li><a href="mailto:start@k8scan.com" class="hover:text-primary transition">Contact</a></li>
+          <li><a href="#" class="hover:text-primary transition">Privacy Policy</a></li>
+          <li><a href="#" class="hover:text-primary transition">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="container mx-auto px-6 mt-10 pt-6 border-t border-gray-900 text-center text-xs text-gray-600">
+      <p>&copy; 2026 k8scan. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

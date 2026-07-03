@@ -3,13 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>k8scan: Free Kubernetes Security Scanner & Vulnerability Detection Tool</title>
+  <meta name="title" content="k8scan: Free Kubernetes Security Scanner & Vulnerability Detection Tool">
+  <meta name="description" content="k8scan is a free, read-only Kubernetes security scanner. Detect misconfigurations, RBAC flaws, exposed secrets, container escape vectors, and attack paths with Capability Break analysis. 123+ security checks, CI/CD ready, CIS Benchmark mapped.">
+  <meta name="keywords" content="kubernetes security scanner, kubernetes security tool, k8s security scanner, kubernetes vulnerability scanner, container security, kubernetes misconfiguration detection, k8scan, kubernetes audit tool, kubernetes security audit, k8s security tool">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://k8scan.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://k8scan.com/">
+  <meta property="og:title" content="k8scan: Free Kubernetes Security Scanner & Vulnerability Detection Tool">
+  <meta property="og:description" content="Detect misconfigurations, RBAC flaws, exposed secrets, and container escape vectors with Capability Break analysis. 123+ security checks, CI/CD ready, CIS Benchmark mapped.">
+  <meta property="og:image" content="https://k8scan.com/k8scan-logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://k8scan.com/">
+  <meta name="twitter:title" content="k8scan: Free Kubernetes Security Scanner & Vulnerability Detection Tool">
+  <meta name="twitter:description" content="Detect misconfigurations, RBAC flaws, exposed secrets, and container escape vectors with Capability Break analysis. 123+ security checks, CI/CD ready.">
+  <meta name="twitter:image" content="https://k8scan.com/k8scan-logo.png">
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com;
                  script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
                  style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
                  img-src    'self' data: https:;
                  font-src   https://cdnjs.cloudflare.com;">
-  <title>k8scan | Kubernetes Security Scanning Platform</title>
   <link rel="icon" type="image/png" href="/k8scan-logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -42,6 +57,39 @@
     .finding-row.medium   { border-color:#facc15; }
     .finding-row.low      { border-color:#a3e635; }
   </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "k8scan",
+  "url": "https://k8scan.com",
+  "description": "k8scan is a free, read-only Kubernetes security scanner that detects misconfigurations, RBAC flaws, exposed secrets, container escape vectors, and correlates findings into Capability Breaks and multi-stage attack paths with MITRE ATT&CK mapping.",
+  "applicationCategory": "SecurityApplication",
+  "operatingSystem": ["Linux", "macOS", "Windows"],
+  "softwareVersion": "2.1.0",
+  "offers": [
+    {
+      "@type": "Offer",
+      "price": "9",
+      "priceCurrency": "USD",
+      "priceValidUntil": "2027-12-31",
+      "description": "Starter plan - 3 scans per month"
+    },
+    {
+      "@type": "Offer",
+      "price": "29",
+      "priceCurrency": "USD",
+      "priceValidUntil": "2027-12-31",
+      "description": "Pro plan - 10 scans per month"
+    }
+  ],
+  "author": {
+    "@type": "Person",
+    "name": "Alperen Keskin",
+    "url": "https://github.com/alperenkesk"
+  }
+}
+</script>
 </head>
 
 <body class="bg-darkBg text-gray-300 font-sans antialiased custom-scrollbar selection:bg-primary selection:text-black">
@@ -333,28 +381,28 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
         <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
-          <img src="screenshots/html-report.png" alt="k8scan HTML Report" class="w-full object-cover">
+          <img src="screenshots/html-report.png" alt="k8scan Kubernetes Security Scanner - HTML Security Report with severity findings" class="w-full object-cover">
           <div class="p-4">
             <p class="text-white font-semibold text-sm" data-i18n="ss.1.title">HTML Report</p>
             <p class="text-gray-500 text-xs mt-1" data-i18n="ss.1.desc">Color-coded findings with severity, location, and remediation guidance.</p>
           </div>
         </div>
         <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
-          <img src="screenshots/capability-breaks.png" alt="Capability Breaks" class="w-full object-cover">
+          <img src="screenshots/capability-breaks.png" alt="k8scan Capability Break Analysis - Kubernetes security boundary violation detection" class="w-full object-cover">
           <div class="p-4">
             <p class="text-white font-semibold text-sm" data-i18n="ss.2.title">Capability Break Analysis</p>
             <p class="text-gray-500 text-xs mt-1" data-i18n="ss.2.desc">Structured proof that a named security boundary is broken, with weighted confidence scores.</p>
           </div>
         </div>
         <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
-          <img src="screenshots/attack-graph.png" alt="Attack Graph" class="w-full object-cover">
+          <img src="screenshots/attack-graph.png" alt="k8scan Interactive Attack Graph - Kubernetes lateral movement path visualization" class="w-full object-cover">
           <div class="p-4">
             <p class="text-white font-semibold text-sm" data-i18n="ss.3.title">Interactive Attack Graph</p>
             <p class="text-gray-500 text-xs mt-1" data-i18n="ss.3.desc">Visual lateral movement path from initial access to final target.</p>
           </div>
         </div>
         <div class="bg-cardBg rounded-xl border border-gray-800 overflow-hidden">
-          <img src="screenshots/proof-of-concept.png" alt="Proof of Concept Commands" class="w-full object-cover">
+          <img src="screenshots/proof-of-concept.png" alt="k8scan Proof-of-Concept Commands - Read-only kubectl security validation commands" class="w-full object-cover">
           <div class="p-4">
             <p class="text-white font-semibold text-sm" data-i18n="ss.4.title">Proof-of-Concept Commands</p>
             <p class="text-gray-500 text-xs mt-1" data-i18n="ss.4.desc">Read-only kubectl commands that validate each finding without modifying cluster state.</p>
@@ -609,24 +657,26 @@
       <div>
         <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Product</p>
         <ul class="space-y-2 text-sm text-gray-400">
-          <li><a href="#pricing"       class="hover:text-primary transition">Pricing</a></li>
-          <li><a href="#features"      class="hover:text-primary transition">Features</a></li>
-          <li><a href="#sample-report" class="hover:text-primary transition">Sample Report</a></li>
+          <li><a href="/kubernetes-security-scanner.html" class="hover:text-primary transition">Kubernetes Security Scanner</a></li>
+          <li><a href="/kubernetes-security-tool.html" class="hover:text-primary transition">Kubernetes Security Tool</a></li>
+          <li><a href="#pricing" class="hover:text-primary transition">Pricing</a></li>
+          <li><a href="#features" class="hover:text-primary transition">Features</a></li>
         </ul>
       </div>
       <div>
-        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Legal</p>
+        <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Resources</p>
         <ul class="space-y-2 text-sm text-gray-400">
-          <li><a href="#" class="hover:text-primary transition">Privacy Policy</a></li>
-          <li><a href="#" class="hover:text-primary transition">Terms of Service</a></li>
-          <li><a href="#" class="hover:text-primary transition">Security</a></li>
+          <li><a href="/sample-report.html" class="hover:text-primary transition">Sample Report</a></li>
+          <li><a href="/blog/kubernetes-security-misconfigurations.html" class="hover:text-primary transition">K8s Security Misconfigurations</a></li>
+          <li><a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition">GitHub</a></li>
         </ul>
       </div>
       <div>
         <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Company</p>
         <ul class="space-y-2 text-sm text-gray-400">
           <li><a href="mailto:start@k8scan.com" class="hover:text-primary transition">Contact</a></li>
-          <li><a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition">GitHub</a></li>
+          <li><a href="#" class="hover:text-primary transition">Privacy Policy</a></li>
+          <li><a href="#" class="hover:text-primary transition">Terms of Service</a></li>
         </ul>
       </div>
     </div>
