@@ -24,7 +24,8 @@
                  script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;
                  style-src  'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
                  img-src    'self' data: https:;
-                 font-src   https://cdnjs.cloudflare.com;">
+                 font-src   https://cdnjs.cloudflare.com;
+                 connect-src 'self' https://api.k8scan.com;">
   <link rel="icon" type="image/png" href="/k8scan-logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -108,7 +109,7 @@
       </nav>
       <div class="flex items-center gap-3">
         <a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer"
-           class="text-sm font-medium text-gray-300 hover:text-primary transition px-4 py-2 flex items-center gap-1.5">
+           class="hidden md:flex text-sm font-medium text-gray-300 hover:text-primary transition px-4 py-2 items-center gap-1.5">
           <i class="fa-brands fa-github"></i> GitHub
         </a>
         <!-- Language toggle -->
@@ -117,11 +118,30 @@
           <button id="lang-tr" onclick="setLang('tr')" class="px-3 py-1.5 rounded text-gray-400 transition hover:text-white">TR</button>
         </div>
         <a href="/app/register.html"
-           class="bg-primary text-black text-sm font-bold px-5 py-2 rounded-md hover:bg-emerald-400 transition glow-sm"
+           class="hidden md:inline-block bg-primary text-black text-sm font-bold px-5 py-2 rounded-md hover:bg-emerald-400 transition glow-sm"
            data-i18n="nav.getstarted">Get Started</a>
+        <!-- Mobile hamburger -->
+        <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white p-2" onclick="toggleMobileMenu()">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
       </div>
     </div>
   </header>
+
+  <!-- ── MOBILE MENU ── -->
+  <div id="mobile-menu" class="hidden fixed inset-0 z-40 bg-darkBg/95 backdrop-blur-md flex flex-col items-center justify-center gap-8 text-xl font-semibold">
+    <button onclick="toggleMobileMenu()" class="absolute top-5 right-6 text-gray-400 hover:text-white">
+      <i class="fa-solid fa-xmark text-2xl"></i>
+    </button>
+    <a href="#pricing"       onclick="toggleMobileMenu()" class="hover:text-primary transition" data-i18n="nav.pricing">Pricing</a>
+    <a href="#features"      onclick="toggleMobileMenu()" class="hover:text-primary transition" data-i18n="nav.features">Features</a>
+    <a href="#how-it-works"  onclick="toggleMobileMenu()" class="hover:text-primary transition" data-i18n="nav.howitworks">How It Works</a>
+    <a href="#sample-report" onclick="toggleMobileMenu()" class="hover:text-primary transition" data-i18n="nav.samplereport">Sample Report</a>
+    <a href="https://github.com/alperenkesk/k8scan" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition flex items-center gap-2">
+      <i class="fa-brands fa-github"></i> GitHub
+    </a>
+    <a href="/app/register.html" class="bg-primary text-black font-bold px-8 py-3 rounded-md hover:bg-emerald-400 transition" data-i18n="nav.getstarted">Get Started</a>
+  </div>
 
   <!-- ── HERO ── -->
   <section class="pt-36 pb-24 container mx-auto px-6 flex flex-col lg:flex-row items-center gap-14">
@@ -474,7 +494,7 @@
           </div>
           <div class="flex-1 flex items-center bg-darkBg px-3 py-1.5 rounded-md border border-gray-700 text-xs text-gray-400 max-w-md mx-auto">
             <i class="fa-solid fa-lock text-primary mr-2 text-xs"></i>
-            app.k8scan.io/scan/nginx-ingress-4.9.1
+            app.k8scan.com/scan/nginx-ingress-4.9.1
           </div>
         </div>
 
@@ -484,7 +504,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h3 class="text-xl font-extrabold text-white mb-1">k8<span class="text-primary">scan</span> &mdash; Security Report</h3>
-              <p class="text-xs text-gray-500">nginx-ingress-4.9.1.tgz &bull; Scanned Apr 12 2025 &bull; 8 templates analyzed</p>
+              <p class="text-xs text-gray-500">nginx-ingress-4.9.1.tgz &bull; Scanned Apr 12 2026 &bull; 8 templates analyzed</p>
             </div>
             <div class="flex gap-3">
               <span class="inline-flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/30 text-xs font-bold px-3 py-1.5 rounded-full">
@@ -600,12 +620,12 @@
                class="inline-flex items-center gap-2 bg-primary text-black text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-emerald-400 transition">
               <i class="fa-solid fa-rocket"></i> Scan Your Own Charts
             </a>
-            <button class="inline-flex items-center gap-2 bg-cardBg border border-gray-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg hover:border-primary transition" onclick="alert('Sign up to download full reports')">
+            <a href="/app/register.html" class="inline-flex items-center gap-2 bg-cardBg border border-gray-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg hover:border-primary transition">
               <i class="fa-solid fa-download"></i> Download HTML Report
-            </button>
-            <button class="inline-flex items-center gap-2 bg-cardBg border border-gray-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg hover:border-primary transition" onclick="alert('Sign up to download full reports')">
+            </a>
+            <a href="/app/register.html" class="inline-flex items-center gap-2 bg-cardBg border border-gray-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg hover:border-primary transition">
               <i class="fa-solid fa-code"></i> Download JSON
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -685,8 +705,8 @@
         <p class="text-xs uppercase tracking-widest text-gray-500 mb-4">Company</p>
         <ul class="space-y-2 text-sm text-gray-400">
           <li><a href="mailto:start@k8scan.com" class="hover:text-primary transition">Contact</a></li>
-          <li><a href="#" class="hover:text-primary transition">Privacy Policy</a></li>
-          <li><a href="#" class="hover:text-primary transition">Terms of Service</a></li>
+          <li><a href="/privacy.html" class="hover:text-primary transition">Privacy Policy</a></li>
+          <li><a href="/terms.html" class="hover:text-primary transition">Terms of Service</a></li>
         </ul>
       </div>
     </div>
@@ -722,20 +742,36 @@
         'pricing.annual':   'Annual',
         'pricing.popular':  'Most Popular',
         'pricing.s.f1': '3 scans / month',
-        'pricing.s.f2': 'Charts up to 5 MB',
+        'pricing.s.f2': 'Charts up to 10 MB',
         'pricing.s.f3': 'HTML report download',
-        'pricing.s.f6': 'Team access',
+        'pricing.s.f4': '123+ security checks',
+        'pricing.s.f5': 'Full PoC commands',
+        'pricing.s.f6': '1 user',
+        'pricing.s.f7': 'Scan history',
+        'pricing.s.f8': 'Scheduled scanning',
+        'pricing.s.f9': 'API access',
         'pricing.s.cta':'Get Started',
-        'pricing.p.f1': '10 scans / month',
-        'pricing.p.f2': 'Charts up to 50 MB',
+        'pricing.p.f1': '20 scans / month',
+        'pricing.p.f2': 'Charts up to 100 MB',
+        'pricing.p.f3': 'HTML, JSON & SARIF reports',
+        'pricing.p.f4': 'Full PoC commands',
         'pricing.p.f5': '5 team members',
-        'pricing.p.f6': 'Slack notifications',
+        'pricing.p.f6': 'Scan history (90 days)',
+        'pricing.p.f7': 'Scheduled scanning',
+        'pricing.p.f8': 'Slack notifications',
+        'pricing.p.f9': 'API access',
         'pricing.p.cta':'Start Pro',
         'pricing.e.f1': 'Unlimited scans',
         'pricing.e.f2': 'Unlimited chart size',
         'pricing.e.f3': 'All report formats',
+        'pricing.e.f4': 'Full PoC commands',
         'pricing.e.f5': 'Unlimited team members',
-        'pricing.e.f7': 'SLA + Priority support',
+        'pricing.e.f6': 'Unlimited scan history',
+        'pricing.e.f7': 'Scheduled scanning',
+        'pricing.e.f8': 'API access',
+        'pricing.e.f9': 'SSO / SAML',
+        'pricing.e.f10':'On-prem deployment',
+        'pricing.e.f11':'SLA + Priority support',
         'pricing.e.cta':'Contact Sales',
         'features.title':    'Everything you need to secure Kubernetes',
         'features.subtitle': '123+ checks across 8 categories—from misconfiguration detection to full attack chain modeling.',
@@ -922,6 +958,13 @@
       const detected = navigator.language && navigator.language.startsWith('tr') ? 'tr' : 'en';
       setLang(saved || detected);
     })();
+
+    // Mobile menu
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+      menu.classList.toggle('flex');
+    }
 
     // Back to top
     const btn = document.getElementById('backToTop');
