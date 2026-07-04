@@ -73,14 +73,14 @@
       "price": "9",
       "priceCurrency": "USD",
       "priceValidUntil": "2027-12-31",
-      "description": "Starter plan - 3 scans per month"
+      "description": "Starter plan - 3 scans per month, 1 user, HTML reports, full PoC commands"
     },
     {
       "@type": "Offer",
       "price": "29",
       "priceCurrency": "USD",
       "priceValidUntil": "2027-12-31",
-      "description": "Pro plan - 10 scans per month"
+      "description": "Pro plan - 20 scans per month, 5 team members, scan history, scheduled scanning, API access"
     }
   ],
   "author": {
@@ -192,12 +192,15 @@
             <span class="text-gray-500 ml-1">/mo</span>
           </div>
           <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-1">
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.s.f1">3 scans / month</span></li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.s.f2">Charts up to 5 MB</span></li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.s.f3">HTML report download</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> 3 scans / month</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Charts up to 10 MB</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> HTML report download</li>
             <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> 123+ security checks</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> PoC commands</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-gray-600 w-4"></i> <span class="text-gray-500" data-i18n="pricing.s.f6">Team access</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Full PoC commands</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> 1 user</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-gray-600 w-4"></i> <span class="text-gray-500">Scan history</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-gray-600 w-4"></i> <span class="text-gray-500">Scheduled scanning</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-xmark text-gray-600 w-4"></i> <span class="text-gray-500">API access</span></li>
           </ul>
           <a href="/app/register.html?plan=starter"
              class="w-full text-center bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-md hover:bg-gray-700 transition"
@@ -215,12 +218,15 @@
             <span class="text-gray-500 ml-1">/mo</span>
           </div>
           <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-1">
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f1">10 scans / month</span></li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f2">Charts up to 50 MB</span></li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> HTML &amp; JSON reports</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> 20 scans / month</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Charts up to 100 MB</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> HTML, JSON &amp; SARIF reports</li>
             <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Full PoC commands</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f5">5 team members</span></li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.p.f6">Slack notifications</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> 5 team members</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Scan history (90 days)</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Scheduled scanning</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Slack notifications</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> API access</li>
           </ul>
           <a href="/app/register.html?plan=pro"
              class="w-full text-center bg-primary text-black font-bold py-3 rounded-md hover:bg-emerald-400 transition"
@@ -234,13 +240,17 @@
             <span class="text-4xl font-extrabold text-white" id="ent-price">Custom</span>
           </div>
           <ul class="space-y-3 text-sm text-gray-300 mb-8 flex-1">
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f1">Unlimited scans</span></li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f2">Unlimited chart size</span></li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f3">All report formats</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Unlimited scans</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Unlimited chart size</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> All report formats</li>
             <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Full PoC commands</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f5">Unlimited team members</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Unlimited team members</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Unlimited scan history</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> Scheduled scanning</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> API access</li>
             <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> SSO / SAML</li>
-            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> <span data-i18n="pricing.e.f7">SLA + Priority support</span></li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> On-prem deployment</li>
+            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary w-4"></i> SLA + Priority support</li>
           </ul>
           <a href="/app/register.html?plan=enterprise"
              class="w-full text-center bg-gray-800 border border-gray-700 text-white font-bold py-3 rounded-md hover:bg-gray-700 transition"
